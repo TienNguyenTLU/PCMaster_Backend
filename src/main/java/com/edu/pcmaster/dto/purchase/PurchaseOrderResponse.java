@@ -13,7 +13,7 @@ public record PurchaseOrderResponse(
 		PurchaseOrderStatus status,
 		BigDecimal totalAmount,
 		Instant createdAt,
+		String documentUrl,
 		List<PurchaseOrderItemResponse> items
 ) {
 }
-

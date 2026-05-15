@@ -49,6 +49,9 @@ public class PurchaseOrder {
 	@Column(name = "created_at", nullable = false)
 	private Instant createdAt;
 
+	@Column(name = "document_url")
+	private String documentUrl;
+
 	@OneToMany(mappedBy = "purchaseOrder", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<PurchaseOrderItem> items = new ArrayList<>();
 
@@ -57,4 +60,3 @@ public class PurchaseOrder {
 		createdAt = Instant.now();
 	}
 }
-

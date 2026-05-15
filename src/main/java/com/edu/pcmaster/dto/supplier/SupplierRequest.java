@@ -1,5 +1,6 @@
 package com.edu.pcmaster.dto.supplier;
 
+import java.util.Set;
 import jakarta.validation.constraints.NotBlank;
 
 public record SupplierRequest(
@@ -7,7 +8,8 @@ public record SupplierRequest(
 		String email,
 		String phone,
 		String address,
-		String contactPerson
+		String contactPerson,
+		Set<Long> brandIds
 ) {
 }
 

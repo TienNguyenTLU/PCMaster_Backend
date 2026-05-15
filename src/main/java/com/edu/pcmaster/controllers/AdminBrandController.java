@@ -3,14 +3,9 @@ package com.edu.pcmaster.controllers;
 import java.util.List;
 
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import com.edu.pcmaster.services.MediaService;
 
 import com.edu.pcmaster.dto.brand.BrandRequest;
 import com.edu.pcmaster.dto.brand.BrandResponse;
@@ -24,9 +19,11 @@ import jakarta.validation.Valid;
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminBrandController {
 	private final BrandService brandService;
+	private final MediaService mediaService;
 
-	public AdminBrandController(BrandService brandService) {
+	public AdminBrandController(BrandService brandService, MediaService mediaService) {
 		this.brandService = brandService;
+		this.mediaService = mediaService;
 	}
 
 	@GetMapping
@@ -36,14 +33,35 @@ public class AdminBrandController {
 				.toList();
 	}
 
-	@PostMapping
-	public BrandResponse create(@Valid @RequestBody BrandRequest request) {
-		return toResponse(brandService.create(request));
+	@PostMapping(consumes = "multipart/form-data")
+	public BrandResponse create(
+			@RequestParam("name") String name,
+			@RequestPart(value = "logo", required = false) org.springframework.web.multipart.MultipartFile logo) {
+		String logoUrl = null;
+		if (logo != null && !logo.isEmpty()) {
+			logoUrl = mediaService.upload(logo, "PCMaster_Storage/Brands");
+		}
+		return toResponse(brandService.create(new BrandRequest(name, logoUrl)));
 	}
 
-	@PutMapping("/{id}")
-	public BrandResponse update(@PathVariable Long id, @Valid @RequestBody BrandRequest request) {
-		return toResponse(brandService.update(id, request));
+	@PutMapping(value = "/{id}", consumes = "multipart/form-data")
+	public BrandResponse update(
+			@PathVariable Long id,
+			@RequestParam("name") String name,
+			@RequestPart(value = "logo", required = false) org.springframework.web.multipart.MultipartFile logo) {
+		String logoUrl = null; // We might want to keep the old logo if no new one is provided, 
+							   // but BrandRequest currently overwrites. 
+							   // Let's check BrandService update logic.
+		if (logo != null && !logo.isEmpty()) {
+			logoUrl = mediaService.upload(logo, "PCMaster_Storage/Brands");
+		} else {
+			// If no new logo, we should probably keep the existing one.
+			// But for simplicity of the "Brands only have name and logo" request, 
+			// I'll just use the provided name.
+			Brand existing = brandService.getById(id);
+			logoUrl = existing.getLogoUrl();
+		}
+		return toResponse(brandService.update(id, new BrandRequest(name, logoUrl)));
 	}
 
 	@DeleteMapping("/{id}")

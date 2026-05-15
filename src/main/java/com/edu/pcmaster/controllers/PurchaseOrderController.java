@@ -3,13 +3,15 @@ package com.edu.pcmaster.controllers;
 import java.util.List;
 
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.edu.pcmaster.dto.purchase.PurchaseOrderItemResponse;
 import com.edu.pcmaster.dto.purchase.PurchaseOrderRequest;
@@ -32,9 +34,10 @@ public class PurchaseOrderController {
 		this.currentUserService = currentUserService;
 	}
 
-	@PostMapping
-	public PurchaseOrderResponse create(@Valid @RequestBody PurchaseOrderRequest request) {
-		return toResponse(purchaseOrderService.create(request, currentUserService.requireUser()));
+	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public PurchaseOrderResponse create(@Valid @RequestPart("data") PurchaseOrderRequest request,
+								@RequestPart(value = "document", required = false) MultipartFile document) {
+		return toResponse(purchaseOrderService.create(request, currentUserService.requireUser(), document));
 	}
 
 	@GetMapping
@@ -50,8 +53,8 @@ public class PurchaseOrderController {
 	}
 
 	@PutMapping("/{id}/receive")
-	public PurchaseOrderResponse receive(@PathVariable Long id) {
-		return toResponse(purchaseOrderService.receive(id));
+	public PurchaseOrderResponse receive(@PathVariable Long id, @org.springframework.web.bind.annotation.RequestBody(required = false) java.util.Map<Long, java.math.BigDecimal> newPrices) {
+		return toResponse(purchaseOrderService.receive(id, newPrices));
 	}
 
 	private PurchaseOrderResponse toResponse(PurchaseOrder order) {
@@ -62,6 +65,7 @@ public class PurchaseOrderController {
 				order.getStatus(),
 				order.getTotalAmount(),
 				order.getCreatedAt(),
+				order.getDocumentUrl(),
 				order.getItems().stream()
 						.map(item -> new PurchaseOrderItemResponse(
 								item.getId(),
@@ -73,4 +77,3 @@ public class PurchaseOrderController {
 		);
 	}
 }
-

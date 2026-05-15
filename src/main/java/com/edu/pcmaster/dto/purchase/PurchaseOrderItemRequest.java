@@ -9,7 +9,7 @@ import jakarta.validation.constraints.NotNull;
 public record PurchaseOrderItemRequest(
 		@NotNull Long productId,
 		@NotNull @Min(1) Integer quantity,
-		@NotNull @DecimalMin("0.01") BigDecimal importPrice
+		@NotNull @DecimalMin("0.00") BigDecimal importPrice
 ) {
 }
 

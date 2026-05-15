@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.edu.pcmaster.common.exception.BadRequestException;
 import com.edu.pcmaster.common.exception.ResourceNotFoundException;
@@ -21,6 +22,7 @@ import com.edu.pcmaster.repositories.InventoryBatchRepository;
 import com.edu.pcmaster.repositories.ProductRepository;
 import com.edu.pcmaster.repositories.PurchaseOrderRepository;
 import com.edu.pcmaster.repositories.SupplierRepository;
+import com.edu.pcmaster.services.MediaService;
 
 @Service
 public class PurchaseOrderService {
@@ -28,15 +30,18 @@ public class PurchaseOrderService {
 	private final SupplierRepository supplierRepository;
 	private final ProductRepository productRepository;
 	private final InventoryBatchRepository inventoryBatchRepository;
+	private final MediaService mediaService;
 
 	public PurchaseOrderService(PurchaseOrderRepository purchaseOrderRepository,
 							SupplierRepository supplierRepository,
 							ProductRepository productRepository,
-							InventoryBatchRepository inventoryBatchRepository) {
+							InventoryBatchRepository inventoryBatchRepository,
+							MediaService mediaService) {
 		this.purchaseOrderRepository = purchaseOrderRepository;
 		this.supplierRepository = supplierRepository;
 		this.productRepository = productRepository;
 		this.inventoryBatchRepository = inventoryBatchRepository;
+		this.mediaService = mediaService;
 	}
 
 	public List<PurchaseOrder> findAll() {
@@ -49,7 +54,7 @@ public class PurchaseOrderService {
 	}
 
 	@Transactional
-	public PurchaseOrder create(PurchaseOrderRequest request, User createdBy) {
+	public PurchaseOrder create(PurchaseOrderRequest request, User createdBy, MultipartFile documentFile) {
 		Supplier supplier = supplierRepository.findById(request.supplierId())
 				.orElseThrow(() -> new ResourceNotFoundException("Supplier not found"));
 		if (request.items() == null || request.items().isEmpty()) {
@@ -60,6 +65,11 @@ public class PurchaseOrderService {
 		purchaseOrder.setSupplier(supplier);
 		purchaseOrder.setCreatedBy(createdBy);
 		purchaseOrder.setStatus(PurchaseOrderStatus.DRAFT);
+
+		if (documentFile != null && !documentFile.isEmpty()) {
+			String documentUrl = mediaService.uploadRaw(documentFile, "PCMaster_Storage/Documents");
+			purchaseOrder.setDocumentUrl(documentUrl);
+		}
 
 		BigDecimal total = BigDecimal.ZERO;
 		for (PurchaseOrderItemRequest itemRequest : request.items()) {
@@ -80,7 +90,7 @@ public class PurchaseOrderService {
 	}
 
 	@Transactional
-	public PurchaseOrder receive(Long id) {
+	public PurchaseOrder receive(Long id, java.util.Map<Long, java.math.BigDecimal> newPrices) {
 		PurchaseOrder purchaseOrder = getById(id);
 		if (purchaseOrder.getStatus() != PurchaseOrderStatus.DRAFT) {
 			throw new BadRequestException("Purchase order already processed");
@@ -97,6 +107,12 @@ public class PurchaseOrderService {
 
 			Product product = item.getProduct();
 			product.setStock(product.getStock() + item.getQuantity());
+			
+			// Update product selling price if provided
+			if (newPrices != null && newPrices.containsKey(product.getId())) {
+				product.setPrice(newPrices.get(product.getId()));
+			}
+			
 			productRepository.save(product);
 		}
 
@@ -104,5 +120,3 @@ public class PurchaseOrderService {
 		return purchaseOrderRepository.save(purchaseOrder);
 	}
 }
-
-

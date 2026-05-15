@@ -46,4 +46,18 @@ public class MediaService {
 			throw new BadRequestException("Upload failed");
 		}
 	}
+
+	public String uploadRaw(MultipartFile file, String folder) {
+		try {
+			Map<?, ?> result = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
+					"folder", folder,
+					"resource_type", "raw",
+					"use_filename", true,
+					"unique_filename", true
+			));
+			return result.get("secure_url").toString();
+		} catch (IOException ex) {
+			throw new BadRequestException("Upload failed");
+		}
+	}
 }
