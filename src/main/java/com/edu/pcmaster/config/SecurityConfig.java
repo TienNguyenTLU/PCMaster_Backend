@@ -43,7 +43,7 @@ public class SecurityConfig {
 				.authorizeHttpRequests(auth -> auth
 						.requestMatchers("/api/auth/**").permitAll()
 						.requestMatchers("/api/products/**", "/api/categories/**", "/api/brands/**",
-								"/api/bottleneck", "/api/chat").permitAll()
+								"/api/bottleneck", "/api/chat", "/api/banners/**", "/api/product-images/**").permitAll()
 						.anyRequest().authenticated()
 				)
 				.httpBasic(Customizer.withDefaults());

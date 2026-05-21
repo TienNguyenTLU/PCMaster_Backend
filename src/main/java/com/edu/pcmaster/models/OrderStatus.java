@@ -1,8 +1,10 @@
 package com.edu.pcmaster.models;
 
 public enum OrderStatus {
-	PENDING,
+	DRAFT,
 	CONFIRMED,
+	SHIPPED,
+	DELIVERED,
 	CANCELLED
 }
 

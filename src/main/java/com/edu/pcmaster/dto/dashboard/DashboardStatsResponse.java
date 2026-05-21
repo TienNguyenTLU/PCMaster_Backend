@@ -5,6 +5,7 @@ import java.util.List;
 
 public record DashboardStatsResponse(
     BigDecimal totalRevenue,
+    BigDecimal totalProfit,
     long activeOrders,
     long lowStockItems,
     long pendingPurchaseOrders,

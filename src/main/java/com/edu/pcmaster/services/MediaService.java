@@ -34,6 +34,19 @@ public class MediaService {
 		}
 	}
 
+	public String upload(byte[] fileBytes, String folder, String publicId) {
+		try {
+			Map<?, ?> result = cloudinary.uploader().upload(fileBytes, ObjectUtils.asMap(
+					"folder", folder,
+					"public_id", publicId,
+					"overwrite", true
+			));
+			return result.get("secure_url").toString();
+		} catch (IOException ex) {
+			throw new BadRequestException("Upload failed");
+		}
+	}
+
 	public String upload(File file, String folder, String publicId) {
 		try {
 			Map<?, ?> result = cloudinary.uploader().upload(file, ObjectUtils.asMap(
@@ -60,4 +73,26 @@ public class MediaService {
 			throw new BadRequestException("Upload failed");
 		}
 	}
+
+	public String uploadRaw(byte[] bytes, String folder, String publicId) {
+		try {
+			Map<?, ?> result = cloudinary.uploader().upload(bytes, ObjectUtils.asMap(
+					"folder", folder,
+					"public_id", publicId,
+					"resource_type", "raw",
+					"overwrite", true
+			));
+			return result.get("secure_url").toString();
+		} catch (IOException ex) {
+			throw new BadRequestException("Upload failed");
+		}
+	}
+
+    public void delete(String publicId) {
+        try {
+            cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
+        } catch (IOException ex) {
+            throw new BadRequestException("Delete failed");
+        }
+    }
 }

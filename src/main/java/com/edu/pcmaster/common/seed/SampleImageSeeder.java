@@ -68,7 +68,7 @@ public class SampleImageSeeder implements CommandLineRunner {
 	public void run(String... args) {
 		Path root = Paths.get(seedRoot).toAbsolutePath().normalize();
 		Path logosRoot = root.resolve("Brands_Logo");
-		Path productsRoot = root.resolve("Product_Image");
+		Path productsRoot = root.resolve("Product_Thumbnails");
 		if (!Files.exists(root)) {
 			log.warn("Seed root not found: {}", root);
 			return;

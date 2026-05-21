@@ -28,13 +28,29 @@ public class DashboardService {
     }
 
     public DashboardStatsResponse getStats() {
+        BigDecimal totalProfit = orderRepository.findAll().stream()
+                .filter(o -> o.getStatus() == OrderStatus.CONFIRMED
+                        || o.getStatus() == OrderStatus.SHIPPED
+                        || o.getStatus() == OrderStatus.DELIVERED)
+                .flatMap(o -> o.getItems().stream())
+                .map(item -> {
+                    BigDecimal sell = item.getSellingPrice() != null ? item.getSellingPrice() : BigDecimal.ZERO;
+                    BigDecimal cost = item.getCostPrice() != null ? item.getCostPrice() : BigDecimal.ZERO;
+                    return sell.subtract(cost).multiply(BigDecimal.valueOf(item.getQuantity()));
+                })
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
         BigDecimal totalRevenue = orderRepository.findAll().stream()
-                .filter(o -> o.getStatus() == OrderStatus.CONFIRMED)
-                .map(o -> o.getTotalAmount())
+                .filter(o -> o.getStatus() == OrderStatus.CONFIRMED
+                        || o.getStatus() == OrderStatus.SHIPPED
+                        || o.getStatus() == OrderStatus.DELIVERED)
+                .map(o -> o.getTotalAmount() != null ? o.getTotalAmount() : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         long activeOrders = orderRepository.findAll().stream()
-                .filter(o -> o.getStatus() == OrderStatus.PENDING)
+                .filter(o -> o.getStatus() == OrderStatus.DRAFT
+                        || o.getStatus() == OrderStatus.CONFIRMED
+                        || o.getStatus() == OrderStatus.SHIPPED)
                 .count();
 
         long lowStockItems = productRepository.findAll().stream()
@@ -57,6 +73,7 @@ public class DashboardService {
 
         return new DashboardStatsResponse(
                 totalRevenue, 
+                totalProfit,
                 activeOrders, 
                 lowStockItems, 
                 pendingPurchaseOrders, 

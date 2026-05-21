@@ -40,7 +40,29 @@ public class Order {
 
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false, length = 20)
-	private OrderStatus status = OrderStatus.PENDING;
+	private OrderStatus status = OrderStatus.DRAFT;
+
+	// ── Delivery ────────────────────────────────────────────────────────────
+
+	@Enumerated(EnumType.STRING)
+	@Column(name = "delivery_type", nullable = false, length = 30)
+	private DeliveryType deliveryType = DeliveryType.SHOWROOM_PICKUP;
+
+	/** Full name of recipient (required for HOME_DELIVERY) */
+	@Column(name = "recipient_name", length = 150)
+	private String recipientName;
+
+	/** Phone number of recipient */
+	@Column(name = "recipient_phone", length = 30)
+	private String recipientPhone;
+
+	/** Delivery address (required for HOME_DELIVERY) */
+	@Column(name = "shipping_address", length = 500)
+	private String shippingAddress;
+
+	/** Cloudinary URL of the DOCX export document, set when order is confirmed */
+	@Column(name = "document_url")
+	private String documentUrl;
 
 	@Column(name = "created_at", nullable = false)
 	private Instant createdAt;
@@ -53,4 +75,3 @@ public class Order {
 		createdAt = Instant.now();
 	}
 }
-
