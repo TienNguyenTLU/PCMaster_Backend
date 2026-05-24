@@ -3,7 +3,7 @@ package com.edu.pcmaster.controllers;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartFile;import java.util.List;
 
 import com.edu.pcmaster.dto.brand.BrandResponse;
 import com.edu.pcmaster.dto.category.CategoryResponse;
@@ -41,6 +41,18 @@ public class AdminProductController {
 	}
 
 	private ProductResponse toResponse(Product product) {
+		List<ProductResponse.PcComponentResponse> pcComponents = null;
+		if (product.getPcSystemDetail() != null && product.getPcSystemDetail().getComponents() != null) {
+			pcComponents = product.getPcSystemDetail().getComponents().stream()
+					.map(comp -> new ProductResponse.PcComponentResponse(
+							comp.getComponentProduct().getId(),
+							comp.getComponentProduct().getName(),
+							comp.getComponentProduct().getThumbnailUrl(),
+							comp.getComponentProduct().getPrice(),
+							comp.getQuantity()
+					))
+					.toList();
+		}
 		return new ProductResponse(
 				product.getId(),
 				product.getCategory() == null ? null : product.getCategory().getId(),
@@ -55,7 +67,8 @@ public class AdminProductController {
 				product.getDescription(),
 				product.getSpecsJson() == null ? null : product.getSpecsJson().toString(),
 				product.getCreatedAt(),
-				product.getUpdatedAt()
+				product.getUpdatedAt(),
+				pcComponents
 		);
 	}
 

@@ -145,8 +145,8 @@ public class InventoryService {
 			productRepository.save(product);
 		}
 
-		// Update order status to DELIVERED
-		order.setStatus(OrderStatus.DELIVERED);
+		// Update order status to SHIPPED
+		order.setStatus(OrderStatus.SHIPPED);
 
 		// Generate export document DOCX and upload to Cloudinary
 		try {
@@ -167,5 +167,36 @@ public class InventoryService {
 		slip.setCompletedAt(Instant.now());
 
 		return inventoryIssueSlipRepository.save(slip);
+	}
+
+	@Transactional
+	public java.math.BigDecimal deductStockFIFO(Product product, int quantity) {
+		if (product.getStock() < quantity) {
+			throw new BadRequestException("Không đủ hàng trong kho cho sản phẩm: " + product.getName());
+		}
+
+		// FIFO deduction from inventory batches
+		int remaining = quantity;
+		java.math.BigDecimal totalCost = java.math.BigDecimal.ZERO;
+		List<InventoryBatch> batches = inventoryBatchRepository
+				.findByProductAndRemainingQuantityGreaterThanOrderByImportedAtAsc(product, 0);
+
+		for (InventoryBatch batch : batches) {
+			if (remaining <= 0) break;
+			int take = Math.min(remaining, batch.getRemainingQuantity());
+			batch.setRemainingQuantity(batch.getRemainingQuantity() - take);
+			inventoryBatchRepository.save(batch);
+			totalCost = totalCost.add(batch.getImportPrice().multiply(java.math.BigDecimal.valueOf(take)));
+			remaining -= take;
+		}
+
+		if (remaining > 0) {
+			throw new BadRequestException("Các lô hàng không đủ số lượng cho sản phẩm: " + product.getName());
+		}
+
+		product.setStock(product.getStock() - quantity);
+		productRepository.save(product);
+		
+		return totalCost;
 	}
 }

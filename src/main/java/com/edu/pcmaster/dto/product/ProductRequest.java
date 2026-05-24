@@ -1,8 +1,8 @@
 package com.edu.pcmaster.dto.product;
 
 import java.math.BigDecimal;
+import java.util.List;
 
-import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -14,8 +14,12 @@ public record ProductRequest(
 		@NotNull BigDecimal price,
 		String thumbnailUrl,
 		String description,
-		String specsJson
+		String specsJson,
+		Integer stock,
+		List<PcComponentRequest> pcComponents
 ) {
+	public record PcComponentRequest(
+		@NotNull Long componentProductId,
+		@NotNull int quantity
+	) {}
 }
-
-

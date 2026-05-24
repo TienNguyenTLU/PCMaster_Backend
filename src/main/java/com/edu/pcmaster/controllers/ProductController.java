@@ -40,6 +40,18 @@ public class ProductController {
 	}
 
 	private ProductResponse toResponse(Product product) {
+		List<ProductResponse.PcComponentResponse> pcComponents = null;
+		if (product.getPcSystemDetail() != null && product.getPcSystemDetail().getComponents() != null) {
+			pcComponents = product.getPcSystemDetail().getComponents().stream()
+					.map(comp -> new ProductResponse.PcComponentResponse(
+							comp.getComponentProduct().getId(),
+							comp.getComponentProduct().getName(),
+							comp.getComponentProduct().getThumbnailUrl(),
+							comp.getComponentProduct().getPrice(),
+							comp.getQuantity()
+					))
+					.toList();
+		}
 		return new ProductResponse(
 				product.getId(),
 				product.getCategory() == null ? null : product.getCategory().getId(),
@@ -54,7 +66,8 @@ public class ProductController {
 				product.getDescription(),
 				product.getSpecsJson() == null ? null : product.getSpecsJson().toString(),
 				product.getCreatedAt(),
-				product.getUpdatedAt()
+				product.getUpdatedAt(),
+				pcComponents
 		);
 	}
 

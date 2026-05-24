@@ -72,6 +72,11 @@ public class BuildController {
 		return toResponse(buildService.deleteItem(id, itemId, currentUserService.requireUser()));
 	}
 
+	@DeleteMapping("/{id}")
+	public void delete(@PathVariable Long id) {
+		buildService.deleteBuild(id, currentUserService.requireUser());
+	}
+
 	@GetMapping("/{id}/compatible-components")
 	public CompatibleComponentsResponse compatibleComponents(@PathVariable Long id,
 													@RequestParam ComponentType type) {
@@ -115,7 +120,8 @@ public class BuildController {
 				product.getDescription(),
 				product.getSpecsJson() == null ? null : product.getSpecsJson().toString(),
 				product.getCreatedAt(),
-				product.getUpdatedAt()
+				product.getUpdatedAt(),
+				null
 		);
 	}
 

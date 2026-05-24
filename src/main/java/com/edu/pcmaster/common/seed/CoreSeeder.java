@@ -17,10 +17,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.edu.pcmaster.models.Brand;
+import com.edu.pcmaster.models.Category;
 import com.edu.pcmaster.models.Supplier;
 import com.edu.pcmaster.models.User;
 import com.edu.pcmaster.models.UserRole;
 import com.edu.pcmaster.repositories.BrandRepository;
+import com.edu.pcmaster.repositories.CategoryRepository;
 import com.edu.pcmaster.repositories.SupplierRepository;
 import com.edu.pcmaster.repositories.UserRepository;
 
@@ -32,15 +34,18 @@ public class CoreSeeder implements CommandLineRunner {
 	private final UserRepository userRepository;
 	private final SupplierRepository supplierRepository;
 	private final BrandRepository brandRepository;
+	private final CategoryRepository categoryRepository;
 	private final PasswordEncoder passwordEncoder;
 
 	public CoreSeeder(UserRepository userRepository,
 					 SupplierRepository supplierRepository,
 					 BrandRepository brandRepository,
+					 CategoryRepository categoryRepository,
 					 PasswordEncoder passwordEncoder) {
 		this.userRepository = userRepository;
 		this.supplierRepository = supplierRepository;
 		this.brandRepository = brandRepository;
+		this.categoryRepository = categoryRepository;
 		this.passwordEncoder = passwordEncoder;
 	}
 
@@ -48,6 +53,7 @@ public class CoreSeeder implements CommandLineRunner {
 	@Transactional
 	public void run(String... args) {
 		seedUsers();
+		seedCategories();
 		seedSuppliers();
 	}
 
@@ -68,6 +74,20 @@ public class CoreSeeder implements CommandLineRunner {
 		user.setRole(role);
 		userRepository.save(user);
 		log.info("Seeded user {}", username);
+	}
+
+	private void seedCategories() {
+		List<String> categories = List.of("LAPTOP", "PC_SYSTEM", "PC_GEAR");
+		for (String name : categories) {
+			String slug = name.toLowerCase(Locale.ROOT).replace("_", "-");
+			if (categoryRepository.findBySlug(slug).isEmpty()) {
+				Category category = new Category();
+				category.setName(name);
+				category.setSlug(slug);
+				categoryRepository.save(category);
+				log.info("Seeded category {}", name);
+			}
+		}
 	}
 
 	private void seedSuppliers() {
@@ -134,4 +154,3 @@ public class CoreSeeder implements CommandLineRunner {
 	private record SupplierSeed(String name, String email, String phone, String address, String contactPerson) {
 	}
 }
-

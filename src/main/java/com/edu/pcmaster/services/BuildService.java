@@ -122,6 +122,12 @@ public class BuildService {
 		return pcBuildRepository.save(build);
 	}
 
+	@Transactional
+	public void deleteBuild(Long id, User user) {
+		PcBuild build = getById(id, user);
+		pcBuildRepository.delete(build);
+	}
+
 	public List<Product> findCompatibleComponents(PcBuild build, ComponentType type) {
 		String socket = null;
 		String ramType = null;
