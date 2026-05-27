@@ -13,6 +13,7 @@ public record OrderRequest(
 		@NotNull DeliveryType deliveryType,
 		String recipientName,
 		String recipientPhone,
-		String shippingAddress
+		String shippingAddress,
+		String couponCode
 ) {
 }

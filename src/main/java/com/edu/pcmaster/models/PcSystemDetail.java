@@ -19,6 +19,7 @@ public class PcSystemDetail {
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId
     @JoinColumn(name = "id")
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private Product product;
 
     @OneToMany(mappedBy = "pcSystemDetail", cascade = CascadeType.ALL, orphanRemoval = true)

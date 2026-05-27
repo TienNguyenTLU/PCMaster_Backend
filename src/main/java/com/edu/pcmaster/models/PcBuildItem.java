@@ -25,6 +25,7 @@ public class PcBuildItem {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "pc_build_id")
+	@com.fasterxml.jackson.annotation.JsonIgnore
 	private PcBuild pcBuild;
 
 	@ManyToOne(fetch = FetchType.LAZY)

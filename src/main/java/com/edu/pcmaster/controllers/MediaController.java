@@ -21,8 +21,11 @@ public class MediaController {
 	}
 
 	@PostMapping("/upload")
-	public MediaUploadResponse upload(@RequestParam("file") MultipartFile file) {
-		String url = mediaService.upload(file);
+	public MediaUploadResponse upload(
+			@RequestParam("file") MultipartFile file,
+			@RequestParam(value = "folder", required = false) String folder) {
+		String targetFolder = (folder == null || folder.isBlank()) ? "pcmaster" : folder;
+		String url = mediaService.upload(file, targetFolder);
 		return new MediaUploadResponse(url);
 	}
 }

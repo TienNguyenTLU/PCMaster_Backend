@@ -51,6 +51,35 @@ public class BannerService {
     }
 
     public void deleteBanner(Long id) {
-        bannerRepository.deleteById(id);
+        Banner banner = bannerRepository.findById(id).orElse(null);
+        if (banner != null) {
+            String url = banner.getImageUrl();
+            if (url != null && url.contains("cloudinary.com")) {
+                try {
+                    String publicId = extractPublicIdFromUrl(url);
+                    mediaService.delete(publicId);
+                } catch (Exception e) {
+                    System.err.println("Failed to delete banner image from Cloudinary: " + e.getMessage());
+                }
+            }
+            bannerRepository.delete(banner);
+        }
+    }
+
+    private String extractPublicIdFromUrl(String url) {
+        int uploadIndex = url.indexOf("/upload/");
+        if (uploadIndex == -1) {
+            throw new IllegalArgumentException("Invalid Cloudinary URL");
+        }
+        int versionIndex = url.indexOf("/v", uploadIndex + 8);
+        if (versionIndex == -1) {
+            throw new IllegalArgumentException("Invalid Cloudinary URL: Missing version");
+        }
+        int startIndex = url.indexOf('/', versionIndex + 1) + 1;
+        int endIndex = url.lastIndexOf('.');
+        if (startIndex == -1 || endIndex == -1 || startIndex >= endIndex) {
+            throw new IllegalArgumentException("Invalid Cloudinary URL: Cannot extract public ID");
+        }
+        return url.substring(startIndex, endIndex);
     }
 }

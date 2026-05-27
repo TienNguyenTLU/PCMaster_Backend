@@ -3,7 +3,10 @@ package com.edu.pcmaster.controllers;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;import java.util.List;
+import org.springframework.web.multipart.MultipartFile;
+import java.util.List;
+import java.util.Map;
+import java.math.BigDecimal;
 
 import com.edu.pcmaster.dto.brand.BrandResponse;
 import com.edu.pcmaster.dto.category.CategoryResponse;
@@ -27,12 +30,14 @@ public class AdminProductController {
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ProductResponse create(@Valid @RequestPart("data") ProductRequest request,
 								@RequestPart(value = "thumbnail", required = false) MultipartFile thumbnail) {
-		return toResponse(productService.create(request, thumbnail));
+		Map<Long, Integer> discountsMap = productService.getActiveProductDiscountsMap();
+		return toResponse(productService.create(request, thumbnail), discountsMap);
 	}
 
 	@PutMapping("/{id}")
 	public ProductResponse update(@PathVariable Long id, @Valid @RequestBody ProductRequest request) {
-		return toResponse(productService.update(id, request));
+		Map<Long, Integer> discountsMap = productService.getActiveProductDiscountsMap();
+		return toResponse(productService.update(id, request), discountsMap);
 	}
 
 	@DeleteMapping("/{id}")
@@ -40,19 +45,28 @@ public class AdminProductController {
 		productService.delete(id);
 	}
 
-	private ProductResponse toResponse(Product product) {
+	private ProductResponse toResponse(Product product, Map<Long, Integer> discountsMap) {
 		List<ProductResponse.PcComponentResponse> pcComponents = null;
 		if (product.getPcSystemDetail() != null && product.getPcSystemDetail().getComponents() != null) {
 			pcComponents = product.getPcSystemDetail().getComponents().stream()
-					.map(comp -> new ProductResponse.PcComponentResponse(
-							comp.getComponentProduct().getId(),
-							comp.getComponentProduct().getName(),
-							comp.getComponentProduct().getThumbnailUrl(),
-							comp.getComponentProduct().getPrice(),
-							comp.getQuantity()
-					))
+					.map(comp -> {
+						Product componentProduct = comp.getComponentProduct();
+						Integer compDiscountPercent = discountsMap.get(componentProduct.getId());
+						BigDecimal compDiscountPrice = productService.calculateDiscountPrice(componentProduct.getPrice(), compDiscountPercent);
+						return new ProductResponse.PcComponentResponse(
+								componentProduct.getId(),
+								componentProduct.getName(),
+								componentProduct.getThumbnailUrl(),
+								compDiscountPrice != null ? compDiscountPrice : componentProduct.getPrice(),
+								comp.getQuantity()
+						);
+					})
 					.toList();
 		}
+		
+		Integer discountPercent = discountsMap.get(product.getId());
+		BigDecimal discountPrice = productService.calculateDiscountPrice(product.getPrice(), discountPercent);
+
 		return new ProductResponse(
 				product.getId(),
 				product.getCategory() == null ? null : product.getCategory().getId(),
@@ -62,6 +76,8 @@ public class AdminProductController {
 				product.getName(),
 				product.getSlug(),
 				product.getPrice(),
+				discountPrice,
+				discountPercent,
 				product.getStock(),
 				product.getThumbnailUrl(),
 				product.getDescription(),

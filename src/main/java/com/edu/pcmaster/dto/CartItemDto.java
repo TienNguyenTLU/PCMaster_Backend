@@ -10,6 +10,7 @@ public class CartItemDto {
     private String productName;
     private String productThumbnailUrl;
     private BigDecimal productPrice;
+    private BigDecimal productDiscountPrice;
     private Integer productStock;
     private Integer quantity;
 }

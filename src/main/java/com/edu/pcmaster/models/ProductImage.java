@@ -26,6 +26,7 @@ public class ProductImage {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "product_id", nullable = false)
+	@com.fasterxml.jackson.annotation.JsonIgnore
 	private Product product;
 
 	@Column(nullable = false, length = 1024)

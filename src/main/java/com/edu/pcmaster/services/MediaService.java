@@ -20,10 +20,12 @@ public class MediaService {
 	}
 
 	public String upload(MultipartFile file) {
+		validateFileSize(file);
 		return upload(file, "pcmaster");
 	}
 
 	public String upload(MultipartFile file, String folder) {
+		validateFileSize(file);
 		try {
 			Map<?, ?> result = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
 					"folder", folder
@@ -35,6 +37,7 @@ public class MediaService {
 	}
 
 	public String upload(byte[] fileBytes, String folder, String publicId) {
+		validateFileSize(fileBytes);
 		try {
 			Map<?, ?> result = cloudinary.uploader().upload(fileBytes, ObjectUtils.asMap(
 					"folder", folder,
@@ -48,6 +51,7 @@ public class MediaService {
 	}
 
 	public String upload(File file, String folder, String publicId) {
+		validateFileSize(file);
 		try {
 			Map<?, ?> result = cloudinary.uploader().upload(file, ObjectUtils.asMap(
 					"folder", folder,
@@ -61,6 +65,7 @@ public class MediaService {
 	}
 
 	public String uploadRaw(MultipartFile file, String folder) {
+		validateFileSize(file);
 		try {
 			Map<?, ?> result = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
 					"folder", folder,
@@ -75,6 +80,7 @@ public class MediaService {
 	}
 
 	public String uploadRaw(byte[] bytes, String folder, String publicId) {
+		validateFileSize(bytes);
 		try {
 			Map<?, ?> result = cloudinary.uploader().upload(bytes, ObjectUtils.asMap(
 					"folder", folder,
@@ -95,4 +101,31 @@ public class MediaService {
             throw new BadRequestException("Delete failed");
         }
     }
+
+	private void validateFileSize(MultipartFile file) {
+		if (file == null || file.isEmpty()) {
+			throw new BadRequestException("Tệp tin tải lên không hợp lệ hoặc trống");
+		}
+		if (file.getSize() > 20 * 1024 * 1024) { // 20 MB
+			throw new BadRequestException("Dung lượng tệp tin vượt quá giới hạn tối đa cho phép là 20MB");
+		}
+	}
+
+	private void validateFileSize(byte[] fileBytes) {
+		if (fileBytes == null || fileBytes.length == 0) {
+			throw new BadRequestException("Dữ liệu tệp tin không hợp lệ hoặc trống");
+		}
+		if (fileBytes.length > 20 * 1024 * 1024) { // 20 MB
+			throw new BadRequestException("Dung lượng tệp tin vượt quá giới hạn tối đa cho phép là 20MB");
+		}
+	}
+
+	private void validateFileSize(File file) {
+		if (file == null || !file.exists()) {
+			throw new BadRequestException("Tệp tin không tồn tại");
+		}
+		if (file.length() > 20 * 1024 * 1024) { // 20 MB
+			throw new BadRequestException("Dung lượng tệp tin vượt quá giới hạn tối đa cho phép là 20MB");
+		}
+	}
 }

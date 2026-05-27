@@ -70,6 +70,13 @@ public class Order {
 	@OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<OrderItem> items = new ArrayList<>();
 
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "coupon_id")
+	private Coupon coupon;
+
+	@Column(name = "coupon_discount", precision = 12, scale = 2)
+	private BigDecimal couponDiscount = BigDecimal.ZERO;
+
 	@PrePersist
 	void onCreate() {
 		createdAt = Instant.now();

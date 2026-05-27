@@ -16,6 +16,7 @@ public class PcSystemComponent {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pc_system_detail_id", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private PcSystemDetail pcSystemDetail;
 
     @ManyToOne(fetch = FetchType.LAZY)

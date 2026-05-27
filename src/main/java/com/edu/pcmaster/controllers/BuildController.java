@@ -1,6 +1,9 @@
 package com.edu.pcmaster.controllers;
 
 import java.util.List;
+import java.util.Map;
+import java.math.BigDecimal;
+import com.edu.pcmaster.services.ProductService;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,10 +36,12 @@ import jakarta.validation.Valid;
 public class BuildController {
 	private final BuildService buildService;
 	private final CurrentUserService currentUserService;
+	private final ProductService productService;
 
-	public BuildController(BuildService buildService, CurrentUserService currentUserService) {
+	public BuildController(BuildService buildService, CurrentUserService currentUserService, ProductService productService) {
 		this.buildService = buildService;
 		this.currentUserService = currentUserService;
+		this.productService = productService;
 	}
 
 	@GetMapping
@@ -81,8 +86,9 @@ public class BuildController {
 	public CompatibleComponentsResponse compatibleComponents(@PathVariable Long id,
 													@RequestParam ComponentType type) {
 		PcBuild build = buildService.getById(id, currentUserService.requireUser());
+		Map<Long, Integer> discountsMap = productService.getActiveProductDiscountsMap();
 		List<ProductResponse> products = buildService.findCompatibleComponents(build, type).stream()
-				.map(this::toProductResponse)
+				.map(p -> toProductResponse(p, discountsMap))
 				.toList();
 		return new CompatibleComponentsResponse(type.name(), products);
 	}
@@ -105,7 +111,10 @@ public class BuildController {
 		);
 	}
 
-	private ProductResponse toProductResponse(Product product) {
+	private ProductResponse toProductResponse(Product product, Map<Long, Integer> discountsMap) {
+		Integer discountPercent = discountsMap.get(product.getId());
+		BigDecimal discountPrice = productService.calculateDiscountPrice(product.getPrice(), discountPercent);
+
 		return new ProductResponse(
 				product.getId(),
 				product.getCategory() == null ? null : product.getCategory().getId(),
@@ -115,6 +124,8 @@ public class BuildController {
 				product.getName(),
 				product.getSlug(),
 				product.getPrice(),
+				discountPrice,
+				discountPercent,
 				product.getStock(),
 				product.getThumbnailUrl(),
 				product.getDescription(),

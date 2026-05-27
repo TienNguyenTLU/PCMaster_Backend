@@ -28,6 +28,7 @@ public class CartServiceImpl implements CartService {
     private final CartItemRepository cartItemRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
+    private final ProductService productService;
 
     private Cart getOrCreateCart(Long userId) {
         return cartRepository.findByUserId(userId).orElseGet(() -> {
@@ -42,6 +43,7 @@ public class CartServiceImpl implements CartService {
     private CartDto mapToDto(Cart cart) {
         CartDto dto = new CartDto();
         dto.setId(cart.getId());
+        java.util.Map<Long, Integer> discountsMap = productService.getActiveProductDiscountsMap();
         dto.setItems(cart.getItems().stream().map(item -> {
             CartItemDto itemDto = new CartItemDto();
             itemDto.setId(item.getId());
@@ -49,6 +51,9 @@ public class CartServiceImpl implements CartService {
             itemDto.setProductName(item.getProduct().getName());
             itemDto.setProductThumbnailUrl(item.getProduct().getThumbnailUrl());
             itemDto.setProductPrice(item.getProduct().getPrice());
+            Integer discountPercent = discountsMap.get(item.getProduct().getId());
+            java.math.BigDecimal discountPrice = productService.calculateDiscountPrice(item.getProduct().getPrice(), discountPercent);
+            itemDto.setProductDiscountPrice(discountPrice);
             itemDto.setProductStock(item.getProduct().getStock());
             itemDto.setQuantity(item.getQuantity());
             return itemDto;

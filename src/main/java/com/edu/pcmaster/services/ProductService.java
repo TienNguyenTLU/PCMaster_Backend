@@ -23,9 +23,12 @@ import com.edu.pcmaster.repositories.BrandRepository;
 import com.edu.pcmaster.repositories.CategoryRepository;
 import com.edu.pcmaster.repositories.InventoryBatchRepository;
 import com.edu.pcmaster.repositories.ProductRepository;
+import com.edu.pcmaster.repositories.PromotionRepository;
 import java.time.Instant;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Map;
+import java.util.HashMap;
 
 @Service
 public class ProductService {
@@ -36,6 +39,7 @@ public class ProductService {
 	private final ObjectMapper objectMapper;
 	private final InventoryService inventoryService;
 	private final InventoryBatchRepository inventoryBatchRepository;
+	private final PromotionRepository promotionRepository;
 
 	public ProductService(ProductRepository productRepository,
 						 CategoryRepository categoryRepository,
@@ -43,7 +47,8 @@ public class ProductService {
 						 MediaService mediaService,
 						 ObjectMapper objectMapper,
 						 InventoryService inventoryService,
-						 InventoryBatchRepository inventoryBatchRepository) {
+						 InventoryBatchRepository inventoryBatchRepository,
+						 PromotionRepository promotionRepository) {
 		this.productRepository = productRepository;
 		this.categoryRepository = categoryRepository;
 		this.brandRepository = brandRepository;
@@ -51,6 +56,7 @@ public class ProductService {
 		this.objectMapper = objectMapper;
 		this.inventoryService = inventoryService;
 		this.inventoryBatchRepository = inventoryBatchRepository;
+		this.promotionRepository = promotionRepository;
 	}
 
 	public Page<Product> search(Long categoryId, Long brandId, String keyword, int page, int size) {
@@ -69,7 +75,9 @@ public class ProductService {
 				.orElseThrow(() -> new ResourceNotFoundException("Brand not found"));
 		String thumbnailUrl = request.thumbnailUrl();
 		if (thumbnailFile != null && !thumbnailFile.isEmpty()) {
-			thumbnailUrl = mediaService.upload(thumbnailFile);
+			String categorySlug = category.getSlug() != null ? category.getSlug() : "other";
+			String folder = String.format("PCMAster_Storage/Product_thumbnails/%s", categorySlug);
+			thumbnailUrl = mediaService.upload(thumbnailFile, folder);
 		}
 
 		Product product = new Product();
@@ -166,7 +174,20 @@ public class ProductService {
 		product.setName(request.name());
 		product.setSlug(request.slug());
 		product.setPrice(request.price());
-		product.setThumbnailUrl(request.thumbnailUrl());
+		
+		// If thumbnail changed, delete old one from Cloudinary
+		String oldThumbnailUrl = product.getThumbnailUrl();
+		String newThumbnailUrl = request.thumbnailUrl();
+		if (oldThumbnailUrl != null && !oldThumbnailUrl.equals(newThumbnailUrl) && oldThumbnailUrl.contains("cloudinary.com")) {
+			try {
+				String publicId = extractPublicIdFromUrl(oldThumbnailUrl);
+				mediaService.delete(publicId);
+			} catch (Exception e) {
+				System.err.println("Failed to delete old thumbnail from Cloudinary: " + e.getMessage());
+			}
+		}
+
+		product.setThumbnailUrl(newThumbnailUrl);
 		product.setDescription(request.description());
 		product.setSpecsJson(parseSpecsJson(request.specsJson()));
 
@@ -216,8 +237,55 @@ public class ProductService {
 		}
 	}
 
+	public Map<Long, Integer> getActiveProductDiscountsMap() {
+		List<Object[]> list = promotionRepository.findActiveProductDiscounts(Instant.now());
+		Map<Long, Integer> map = new HashMap<>();
+		for (Object[] row : list) {
+			Long productId = (Long) row[0];
+			Integer discountPercent = (Integer) row[1];
+			map.merge(productId, discountPercent, Math::max);
+		}
+		return map;
+	}
+
+	public BigDecimal calculateDiscountPrice(BigDecimal originalPrice, Integer discountPercent) {
+		if (discountPercent == null || discountPercent <= 0) {
+			return null;
+		}
+		BigDecimal discount = originalPrice
+				.multiply(BigDecimal.valueOf(discountPercent))
+				.divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+		return originalPrice.subtract(discount);
+	}
+
 	public void delete(Long id) {
 		Product product = getById(id);
+		String thumbnailUrl = product.getThumbnailUrl();
+		if (thumbnailUrl != null && thumbnailUrl.contains("cloudinary.com")) {
+			try {
+				String publicId = extractPublicIdFromUrl(thumbnailUrl);
+				mediaService.delete(publicId);
+			} catch (Exception e) {
+				System.err.println("Failed to delete product thumbnail from Cloudinary: " + e.getMessage());
+			}
+		}
 		productRepository.delete(product);
+	}
+
+	private String extractPublicIdFromUrl(String url) {
+		int uploadIndex = url.indexOf("/upload/");
+		if (uploadIndex == -1) {
+			throw new IllegalArgumentException("Invalid Cloudinary URL");
+		}
+		int versionIndex = url.indexOf("/v", uploadIndex + 8);
+		if (versionIndex == -1) {
+			throw new IllegalArgumentException("Invalid Cloudinary URL: Missing version");
+		}
+		int startIndex = url.indexOf('/', versionIndex + 1) + 1;
+		int endIndex = url.lastIndexOf('.');
+		if (startIndex == -1 || endIndex == -1 || startIndex >= endIndex) {
+			throw new IllegalArgumentException("Invalid Cloudinary URL: Cannot extract public ID");
+		}
+		return url.substring(startIndex, endIndex);
 	}
 }

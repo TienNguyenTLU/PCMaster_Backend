@@ -112,6 +112,8 @@ public class OrderController {
 				order.getShippingAddress(),
 				order.getDocumentUrl(),
 				order.getCreatedAt(),
+				order.getCoupon() != null ? order.getCoupon().getCode() : null,
+				order.getCouponDiscount(),
 				order.getItems().stream()
 						.map(item -> new OrderItemResponse(
 								item.getId(),

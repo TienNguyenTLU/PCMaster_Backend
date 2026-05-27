@@ -1,6 +1,8 @@
 package com.edu.pcmaster.controllers;
 
 import java.util.List;
+import java.util.Map;
+import java.math.BigDecimal;
 
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,28 +32,39 @@ public class ProductController {
 								@RequestParam(required = false) String keyword,
 								@RequestParam(defaultValue = "0") int page,
 								@RequestParam(defaultValue = "10") int size) {
+		Map<Long, Integer> discountsMap = productService.getActiveProductDiscountsMap();
 		return productService.search(categoryId, brandId, keyword, page, size)
-				.map(this::toResponse);
+				.map(p -> toResponse(p, discountsMap));
 	}
 
 	@GetMapping("/{id}")
 	public ProductResponse detail(@PathVariable Long id) {
-		return toResponse(productService.getById(id));
+		Map<Long, Integer> discountsMap = productService.getActiveProductDiscountsMap();
+		return toResponse(productService.getById(id), discountsMap);
 	}
 
-	private ProductResponse toResponse(Product product) {
+	private ProductResponse toResponse(Product product, Map<Long, Integer> discountsMap) {
 		List<ProductResponse.PcComponentResponse> pcComponents = null;
 		if (product.getPcSystemDetail() != null && product.getPcSystemDetail().getComponents() != null) {
 			pcComponents = product.getPcSystemDetail().getComponents().stream()
-					.map(comp -> new ProductResponse.PcComponentResponse(
-							comp.getComponentProduct().getId(),
-							comp.getComponentProduct().getName(),
-							comp.getComponentProduct().getThumbnailUrl(),
-							comp.getComponentProduct().getPrice(),
-							comp.getQuantity()
-					))
+					.map(comp -> {
+						Product componentProduct = comp.getComponentProduct();
+						Integer compDiscountPercent = discountsMap.get(componentProduct.getId());
+						BigDecimal compDiscountPrice = productService.calculateDiscountPrice(componentProduct.getPrice(), compDiscountPercent);
+						return new ProductResponse.PcComponentResponse(
+								componentProduct.getId(),
+								componentProduct.getName(),
+								componentProduct.getThumbnailUrl(),
+								compDiscountPrice != null ? compDiscountPrice : componentProduct.getPrice(),
+								comp.getQuantity()
+						);
+					})
 					.toList();
 		}
+		
+		Integer discountPercent = discountsMap.get(product.getId());
+		BigDecimal discountPrice = productService.calculateDiscountPrice(product.getPrice(), discountPercent);
+
 		return new ProductResponse(
 				product.getId(),
 				product.getCategory() == null ? null : product.getCategory().getId(),
@@ -61,6 +74,8 @@ public class ProductController {
 				product.getName(),
 				product.getSlug(),
 				product.getPrice(),
+				discountPrice,
+				discountPercent,
 				product.getStock(),
 				product.getThumbnailUrl(),
 				product.getDescription(),

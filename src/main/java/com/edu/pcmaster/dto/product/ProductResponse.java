@@ -17,6 +17,8 @@ public record ProductResponse(
 		String name,
 		String slug,
 		BigDecimal price,
+		BigDecimal discountPrice,
+		Integer discountPercent,
 		Integer stock,
 		String thumbnailUrl,
 		String description,

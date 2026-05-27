@@ -18,9 +18,12 @@ import com.edu.pcmaster.models.OrderItem;
 import com.edu.pcmaster.models.OrderStatus;
 import com.edu.pcmaster.models.Product;
 import com.edu.pcmaster.models.User;
+import com.edu.pcmaster.models.Coupon;
+import com.edu.pcmaster.repositories.CouponRepository;
 import com.edu.pcmaster.repositories.InventoryBatchRepository;
 import com.edu.pcmaster.repositories.OrderRepository;
 import com.edu.pcmaster.repositories.ProductRepository;
+import java.time.Instant;
 
 @Service
 public class OrderService {
@@ -29,17 +32,23 @@ public class OrderService {
 	private final InventoryBatchRepository inventoryBatchRepository;
 	private final OrderDocumentService orderDocumentService;
 	private final MediaService mediaService;
+	private final CouponRepository couponRepository;
+	private final ProductService productService;
 
 	public OrderService(OrderRepository orderRepository,
 						ProductRepository productRepository,
 						InventoryBatchRepository inventoryBatchRepository,
 						OrderDocumentService orderDocumentService,
-						MediaService mediaService) {
+						MediaService mediaService,
+						CouponRepository couponRepository,
+						ProductService productService) {
 		this.orderRepository = orderRepository;
 		this.productRepository = productRepository;
 		this.inventoryBatchRepository = inventoryBatchRepository;
 		this.orderDocumentService = orderDocumentService;
 		this.mediaService = mediaService;
+		this.couponRepository = couponRepository;
+		this.productService = productService;
 	}
 
 	// ── Customer queries ────────────────────────────────────────────────────────
@@ -98,6 +107,7 @@ public class OrderService {
 		order.setShippingAddress(request.shippingAddress());
 
 		BigDecimal totalAmount = BigDecimal.ZERO;
+		java.util.Map<Long, Integer> discountsMap = productService.getActiveProductDiscountsMap();
 
 		for (OrderItemRequest itemRequest : request.items()) {
 			Product product = productRepository.findById(itemRequest.productId())
@@ -106,14 +116,55 @@ public class OrderService {
 				throw new BadRequestException("Insufficient stock for product: " + product.getName());
 			}
 
+			Integer discountPercent = discountsMap.get(product.getId());
+			BigDecimal discountPrice = productService.calculateDiscountPrice(product.getPrice(), discountPercent);
+			BigDecimal finalSellingPrice = discountPrice != null ? discountPrice : product.getPrice();
+
 			OrderItem orderItem = new OrderItem();
 			orderItem.setOrder(order);
 			orderItem.setProduct(product);
 			orderItem.setQuantity(itemRequest.quantity());
-			orderItem.setSellingPrice(product.getPrice());
+			orderItem.setSellingPrice(finalSellingPrice);
 			order.getItems().add(orderItem);
 
-			totalAmount = totalAmount.add(product.getPrice().multiply(BigDecimal.valueOf(itemRequest.quantity())));
+			totalAmount = totalAmount.add(finalSellingPrice.multiply(BigDecimal.valueOf(itemRequest.quantity())));
+		}
+
+		if (request.couponCode() != null && !request.couponCode().isBlank()) {
+			Coupon coupon = couponRepository.findByCodeIgnoreCase(request.couponCode())
+					.orElseThrow(() -> new BadRequestException("Mã giảm giá không tồn tại."));
+			if (!coupon.getActive() || coupon.getStartDate().isAfter(Instant.now()) || coupon.getEndDate().isBefore(Instant.now())) {
+				throw new BadRequestException("Mã giảm giá đã hết hạn hoặc chưa kích hoạt.");
+			}
+			if (coupon.getUsageLimit() != null && coupon.getUsageCount() >= coupon.getUsageLimit()) {
+				throw new BadRequestException("Mã giảm giá đã hết lượt sử dụng.");
+			}
+			if (totalAmount.compareTo(coupon.getMinOrderAmount()) < 0) {
+				throw new BadRequestException("Đơn hàng chưa đạt giá trị tối thiểu " + coupon.getMinOrderAmount() + " để áp dụng mã.");
+			}
+
+			BigDecimal couponDiscount = BigDecimal.ZERO;
+			if ("PERCENTAGE".equalsIgnoreCase(coupon.getDiscountType())) {
+				couponDiscount = totalAmount
+						.multiply(coupon.getDiscountValue())
+						.divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+				if (coupon.getMaxDiscountAmount() != null && couponDiscount.compareTo(coupon.getMaxDiscountAmount()) > 0) {
+					couponDiscount = coupon.getMaxDiscountAmount();
+				}
+			} else if ("FIXED_AMOUNT".equalsIgnoreCase(coupon.getDiscountType())) {
+				couponDiscount = coupon.getDiscountValue();
+			}
+
+			if (couponDiscount.compareTo(totalAmount) > 0) {
+				couponDiscount = totalAmount;
+			}
+
+			totalAmount = totalAmount.subtract(couponDiscount);
+			order.setCoupon(coupon);
+			order.setCouponDiscount(couponDiscount);
+
+			coupon.setUsageCount(coupon.getUsageCount() + 1);
+			couponRepository.save(coupon);
 		}
 
 		order.setTotalAmount(totalAmount);

@@ -20,6 +20,8 @@ public record OrderResponse(
 		String shippingAddress,
 		String documentUrl,
 		Instant createdAt,
+		String couponCode,
+		BigDecimal couponDiscount,
 		List<OrderItemResponse> items
 ) {
 }

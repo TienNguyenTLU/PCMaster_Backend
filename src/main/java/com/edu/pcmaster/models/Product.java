@@ -16,11 +16,14 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -70,7 +73,12 @@ public class Product {
 	private Instant updatedAt;
 
 	@OneToOne(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@com.fasterxml.jackson.annotation.JsonIgnore
 	private PcSystemDetail pcSystemDetail;
+
+	@ManyToMany(mappedBy = "products", fetch = FetchType.LAZY)
+	@com.fasterxml.jackson.annotation.JsonIgnore
+	private List<Promotion> promotions = new ArrayList<>();
 
 	@PrePersist
 	void onCreate() {
