@@ -1,40 +1,42 @@
 package com.edu.pcmaster.controllers;
 
-import java.util.List;
-
+import com.edu.pcmaster.dto.chatbot.ChatRequest;
+import com.edu.pcmaster.dto.chatbot.ChatResponse;
+import com.edu.pcmaster.services.RagChatService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.edu.pcmaster.dto.chatbot.ChatMessageDto;
-import com.edu.pcmaster.services.ChatbotService;
+import java.util.List;
 
+/**
+ * Controller tiếp nhận tin nhắn chat từ Frontend.
+ * Endpoint công khai, không yêu cầu xác thực JWT.
+ * POST /api/chat → RAG pipeline → ChatResponse
+ */
 @RestController
 @RequestMapping("/api/chat")
 public class ChatbotController {
 
-    private final ChatbotService chatbotService;
+    private final RagChatService ragChatService;
 
-    public ChatbotController(ChatbotService chatbotService) {
-        this.chatbotService = chatbotService;
+    public ChatbotController(RagChatService ragChatService) {
+        this.ragChatService = ragChatService;
     }
 
     /**
-     * DTO đại diện cho yêu cầu trò chuyện gửi từ Frontend.
-     */
-    public record ChatRequest(
-        String message,
-        List<ChatMessageDto> history
-    ) {}
-
-    /**
-     * Điểm tiếp nhận tin nhắn chat tư vấn (cho phép truy cập công khai).
+     * Nhận tin nhắn từ người dùng và trả về câu trả lời AI kèm sản phẩm đề xuất.
      */
     @PostMapping
-    public ChatbotService.ChatbotResponse chat(@RequestBody ChatRequest request) {
-        // Nếu danh sách history bị null, khởi tạo danh sách rỗng để tránh NullPointerException
-        List<ChatMessageDto> chatHistory = request.history() != null ? request.history() : List.of();
-        return chatbotService.processChatMessage(request.message(), chatHistory);
+    public ResponseEntity<ChatResponse> chat(@RequestBody ChatRequest request) {
+        if (request.message() == null || request.message().isBlank()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        List history = request.history() != null ? request.history() : List.of();
+        ChatResponse response = ragChatService.chat(request.message().trim(), history);
+        return ResponseEntity.ok(response);
     }
 }

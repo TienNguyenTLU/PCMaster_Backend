@@ -39,22 +39,5 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 	List<Product> findCompatibleComponents(@Param("componentType") String componentType,
 									  @Param("socket") String socket,
 									  @Param("ramType") String ramType);
-
-	@Query(value = "SELECT p.* FROM products p "
-			+ "LEFT JOIN categories c ON p.category_id = c.id "
-			+ "LEFT JOIN brands b ON p.brand_id = b.id "
-			+ "WHERE (:categorySlug IS NULL OR :categorySlug = '' OR c.slug = :categorySlug "
-			+ "   OR c.parent_id IN (SELECT id FROM categories WHERE slug = :categorySlug)) "
-			+ "AND (:brandSlug IS NULL OR :brandSlug = '' OR b.name ILIKE CONCAT('%', :brandSlug, '%')) "
-			+ "AND (:maxPrice IS NULL OR p.price <= :maxPrice) "
-			+ "AND (:keyword IS NULL OR :keyword = '' "
-			+ "   OR p.name ILIKE CONCAT('%', :keyword, '%') "
-			+ "   OR p.description ILIKE CONCAT('%', :keyword, '%')) "
-			+ "AND p.stock > 0 "
-			+ "LIMIT 8", nativeQuery = true)
-	List<Product> findProductsForChatbot(@Param("categorySlug") String categorySlug,
-										@Param("brandSlug") String brandSlug,
-										@Param("maxPrice") java.math.BigDecimal maxPrice,
-										@Param("keyword") String keyword);
 }
 

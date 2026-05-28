@@ -291,6 +291,9 @@ public class SampleImageSeeder implements CommandLineRunner {
 			specs.put("tdp_w", 170);
 			specs.put("integrated_gpu", true);
 			specs.put("performance_score", 45000);
+			specs.put("accessories", "Sách hướng dẫn, sticker AMD Ryzen");
+			specs.put("intended_use", List.of("Chơi game", "Đồ họa", "Workstation / Server"));
+			specs.put("technologies", "AMD Zen 5, SMT, Precision Boost Overdrive");
 		} else if (name.contains("5900x")) {
 			specs.put("series", "Ryzen 9");
 			specs.put("socket", "AM4");
@@ -302,6 +305,9 @@ public class SampleImageSeeder implements CommandLineRunner {
 			specs.put("tdp_w", 105);
 			specs.put("integrated_gpu", false);
 			specs.put("performance_score", 35000);
+			specs.put("accessories", "Sách hướng dẫn, sticker AMD Ryzen");
+			specs.put("intended_use", List.of("Chơi game", "Đồ họa", "Workstation / Server"));
+			specs.put("technologies", "AMD Zen 3, SMT, Precision Boost 2");
 		} else if (name.contains("7500f")) {
 			specs.put("series", "Ryzen 5");
 			specs.put("socket", "AM5");
@@ -313,6 +319,9 @@ public class SampleImageSeeder implements CommandLineRunner {
 			specs.put("tdp_w", 65);
 			specs.put("integrated_gpu", false);
 			specs.put("performance_score", 25000);
+			specs.put("accessories", "Tản nhiệt stock Wraith Stealth, sách HDSD");
+			specs.put("intended_use", List.of("Chơi game", "Học tập"));
+			specs.put("technologies", "AMD Zen 4, SMT, Precision Boost 2");
 		} else if (name.contains("7800x3d")) {
 			specs.put("series", "Ryzen 7");
 			specs.put("socket", "AM5");
@@ -324,6 +333,9 @@ public class SampleImageSeeder implements CommandLineRunner {
 			specs.put("tdp_w", 120);
 			specs.put("integrated_gpu", true);
 			specs.put("performance_score", 34000);
+			specs.put("accessories", "Sách hướng dẫn, sticker AMD Ryzen");
+			specs.put("intended_use", List.of("Chơi game", "Đồ họa"));
+			specs.put("technologies", "AMD 3D V-Cache, Zen 4, SMT");
 		} else if (name.contains("8500g")) {
 			specs.put("series", "Ryzen 5");
 			specs.put("socket", "AM5");
@@ -335,6 +347,9 @@ public class SampleImageSeeder implements CommandLineRunner {
 			specs.put("tdp_w", 65);
 			specs.put("integrated_gpu", true);
 			specs.put("performance_score", 21000);
+			specs.put("accessories", "Tản nhiệt stock Wraith Stealth, sách HDSD");
+			specs.put("intended_use", List.of("Văn phòng", "Học tập"));
+			specs.put("technologies", "AMD Zen 4, Radeon 740M iGPU, SMT");
 		}
 	}
 
@@ -350,6 +365,9 @@ public class SampleImageSeeder implements CommandLineRunner {
 			specs.put("length_mm", 243);
 			specs.put("min_psu_w", 500);
 			specs.put("performance_score", 15000);
+			specs.put("accessories", "Sách HDSD, cáp chuyển đổi nguồn");
+			specs.put("intended_use", List.of("Chơi game", "Học tập"));
+			specs.put("technologies", "AMD RDNA 2, AMD FidelityFX, Smart Access Memory");
 		} else if (name.contains("1650")) {
 			specs.put("chipset", "GTX 1650 Super");
 			specs.put("vram_gb", 4);
@@ -360,6 +378,9 @@ public class SampleImageSeeder implements CommandLineRunner {
 			specs.put("length_mm", 248);
 			specs.put("min_psu_w", 350);
 			specs.put("performance_score", 9000);
+			specs.put("accessories", "Sách HDSD");
+			specs.put("intended_use", List.of("Văn phòng", "Chơi game", "Học tập"));
+			specs.put("technologies", "NVIDIA Turing, CUDA Cores, DirectX 12");
 		} else if (name.contains("5070 ti")) {
 			specs.put("chipset", "RTX 5070 Ti");
 			specs.put("vram_gb", 16);
@@ -370,6 +391,9 @@ public class SampleImageSeeder implements CommandLineRunner {
 			specs.put("length_mm", 330);
 			specs.put("min_psu_w", 750);
 			specs.put("performance_score", 32000);
+			specs.put("accessories", "Giá đỡ VGA, cáp chuyển đổi nguồn 12VHPWR, sách HDSD");
+			specs.put("intended_use", List.of("Chơi game", "Đồ họa", "Workstation / Server"));
+			specs.put("technologies", "NVIDIA Blackwell, Ray Tracing, DLSS 4, PCIe 5.0");
 		} else if (name.contains("5060 ti")) {
 			specs.put("chipset", "RTX 5060 Ti");
 			specs.put("vram_gb", 8);
@@ -380,6 +404,9 @@ public class SampleImageSeeder implements CommandLineRunner {
 			specs.put("length_mm", 242);
 			specs.put("min_psu_w", 550);
 			specs.put("performance_score", 20000);
+			specs.put("accessories", "Sách HDSD, cáp chuyển đổi nguồn");
+			specs.put("intended_use", List.of("Chơi game", "Đồ họa"));
+			specs.put("technologies", "NVIDIA Blackwell, Ray Tracing, DLSS 4");
 		} else if (name.contains("5050")) {
 			specs.put("chipset", "RTX 5050");
 			specs.put("vram_gb", 8);
@@ -390,6 +417,9 @@ public class SampleImageSeeder implements CommandLineRunner {
 			specs.put("length_mm", 200);
 			specs.put("min_psu_w", 450);
 			specs.put("performance_score", 12000);
+			specs.put("accessories", "Sách HDSD");
+			specs.put("intended_use", List.of("Chơi game", "Học tập"));
+			specs.put("technologies", "NVIDIA Blackwell, Ray Tracing, DLSS 4");
 		} else if (name.contains("b580")) {
 			specs.put("chipset", "Arc B580");
 			specs.put("vram_gb", 12);
@@ -400,6 +430,9 @@ public class SampleImageSeeder implements CommandLineRunner {
 			specs.put("length_mm", 280);
 			specs.put("min_psu_w", 600);
 			specs.put("performance_score", 18000);
+			specs.put("accessories", "Sách HDSD, cáp chuyển đổi nguồn");
+			specs.put("intended_use", List.of("Chơi game", "Đồ họa"));
+			specs.put("technologies", "Intel Xe2, Ray Tracing, XeSS 2, AV1 Encode");
 		}
 	}
 
@@ -412,6 +445,9 @@ public class SampleImageSeeder implements CommandLineRunner {
 			specs.put("kit", "1x16GB");
 			specs.put("latency_cl", 16);
 			specs.put("has_rgb", name.contains("rgb"));
+			specs.put("accessories", "Sách HDSD");
+			specs.put("intended_use", List.of("Văn phòng", "Học tập"));
+			specs.put("technologies", "Intel XMP 2.0");
 		} else if (name.contains("pro rgb 32gb")) {
 			specs.put("type", "DDR4");
 			specs.put("capacity_gb", 32);
@@ -419,6 +455,9 @@ public class SampleImageSeeder implements CommandLineRunner {
 			specs.put("kit", "2x16GB");
 			specs.put("latency_cl", 18);
 			specs.put("has_rgb", true);
+			specs.put("accessories", "Sách HDSD, sticker");
+			specs.put("intended_use", List.of("Chơi game", "Đồ họa"));
+			specs.put("technologies", "Intel XMP 2.0, iCUE RGB");
 		} else if (name.contains("royal")) {
 			specs.put("type", "DDR4");
 			specs.put("capacity_gb", 32);
@@ -426,6 +465,9 @@ public class SampleImageSeeder implements CommandLineRunner {
 			specs.put("kit", "2x16GB");
 			specs.put("latency_cl", 18);
 			specs.put("has_rgb", true);
+			specs.put("accessories", "Sách HDSD, sticker");
+			specs.put("intended_use", List.of("Chơi game", "Đồ họa"));
+			specs.put("technologies", "Intel XMP 2.0, Dual Channel");
 		} else if (name.contains("dominator")) {
 			specs.put("type", "DDR5");
 			specs.put("capacity_gb", 32);
@@ -433,6 +475,9 @@ public class SampleImageSeeder implements CommandLineRunner {
 			specs.put("kit", "2x16GB");
 			specs.put("latency_cl", 36);
 			specs.put("has_rgb", true);
+			specs.put("accessories", "Sách HDSD, sticker Corsair");
+			specs.put("intended_use", List.of("Chơi game", "Đồ họa", "Workstation / Server"));
+			specs.put("technologies", "Intel XMP 3.0, AMD EXPO, iCUE RGB, On-Die ECC");
 		} else if (name.contains("trident-z-rgb")) {
 			specs.put("type", "DDR5");
 			specs.put("capacity_gb", 32);
@@ -440,6 +485,9 @@ public class SampleImageSeeder implements CommandLineRunner {
 			specs.put("kit", "2x16GB");
 			specs.put("latency_cl", 36);
 			specs.put("has_rgb", true);
+			specs.put("accessories", "Sách HDSD, sticker G.Skill");
+			specs.put("intended_use", List.of("Chơi game", "Đồ họa"));
+			specs.put("technologies", "Intel XMP 3.0, AMD EXPO, On-Die ECC");
 		}
 	}
 
@@ -454,6 +502,10 @@ public class SampleImageSeeder implements CommandLineRunner {
 			specs.put("max_ram_gb", 192);
 			specs.put("m2_slots", 4);
 			specs.put("has_wifi", name.contains("wifi") || name.contains("hero"));
+			specs.put("mainboard_type", "Gaming");
+			specs.put("accessories", "Cáp SATA, chặn main, anten WiFi, sách HDSD");
+			specs.put("intended_use", List.of("Chơi game", "Đồ họa", "Workstation / Server"));
+			specs.put("technologies", "PCIe 5.0, Thunderbolt 4, WiFi 6E, 2.5G LAN");
 		} else if (name.contains("x870")) {
 			specs.put("chipset", "X870");
 			specs.put("socket", "AM5");
@@ -463,6 +515,10 @@ public class SampleImageSeeder implements CommandLineRunner {
 			specs.put("max_ram_gb", 192);
 			specs.put("m2_slots", 3);
 			specs.put("has_wifi", true);
+			specs.put("mainboard_type", "Gaming");
+			specs.put("accessories", "Cáp SATA, chặn main, anten WiFi 7, sách HDSD");
+			specs.put("intended_use", List.of("Chơi game", "Đồ họa"));
+			specs.put("technologies", "PCIe 5.0, WiFi 7, USB4, 2.5G LAN");
 		} else if (name.contains("z690")) {
 			specs.put("chipset", "Z690");
 			specs.put("socket", "LGA1700");
@@ -472,6 +528,10 @@ public class SampleImageSeeder implements CommandLineRunner {
 			specs.put("max_ram_gb", 128);
 			specs.put("m2_slots", 4);
 			specs.put("has_wifi", true);
+			specs.put("mainboard_type", "Gaming");
+			specs.put("accessories", "Cáp SATA, chặn main, anten WiFi 6, sách HDSD");
+			specs.put("intended_use", List.of("Chơi game", "Đồ họa"));
+			specs.put("technologies", "PCIe 5.0, WiFi 6, Thunderbolt 4, 2.5G LAN");
 		}
 	}
 
@@ -483,21 +543,33 @@ public class SampleImageSeeder implements CommandLineRunner {
 			specs.put("capacity_gb", 2000);
 			specs.put("read_speed_mbps", 6000);
 			specs.put("write_speed_mbps", 5000);
+			specs.put("accessories", "Ốc M.2, sách HDSD");
+			specs.put("intended_use", List.of("Chơi game", "Đồ họa", "Workstation / Server"));
+			specs.put("technologies", "DRAM Cache, NVMe 1.4, bảo vệ dữ liệu đột ngột mất điện");
 		} else if (name.contains("970evo_500gb")) {
 			specs.put("interface", "NVMe PCIe Gen3");
 			specs.put("capacity_gb", 500);
 			specs.put("read_speed_mbps", 3500);
 			specs.put("write_speed_mbps", 3300);
+			specs.put("accessories", "Ốc M.2, sách HDSD");
+			specs.put("intended_use", List.of("Văn phòng", "Chơi game", "Học tập"));
+			specs.put("technologies", "Samsung V-NAND, Phoenix Controller, AES 256-bit Encryption");
 		} else if (name.contains("evo-plus-250gb")) {
 			specs.put("interface", "NVMe PCIe Gen3");
 			specs.put("capacity_gb", 250);
 			specs.put("read_speed_mbps", 3500);
 			specs.put("write_speed_mbps", 2300);
+			specs.put("accessories", "Ốc M.2, sách HDSD");
+			specs.put("intended_use", List.of("Văn phòng", "Học tập"));
+			specs.put("technologies", "Samsung V-NAND, Phoenix Controller");
 		} else if (name.contains("aorus_rgb_ssd_1tb")) {
 			specs.put("interface", "NVMe PCIe Gen4");
 			specs.put("capacity_gb", 1000);
 			specs.put("read_speed_mbps", 5000);
 			specs.put("write_speed_mbps", 4400);
+			specs.put("accessories", "Ốc M.2, tản nhiệt nhôm RGB, sách HDSD");
+			specs.put("intended_use", List.of("Chơi game", "Đồ họa"));
+			specs.put("technologies", "Phison E16 Controller, 3D TLC NAND, RGB Fusion 2.0");
 		}
 	}
 
@@ -508,14 +580,23 @@ public class SampleImageSeeder implements CommandLineRunner {
 			specs.put("wattage", 1000);
 			specs.put("efficiency_rating", "80 Plus Gold");
 			specs.put("modularity", "Full Modular");
+			specs.put("accessories", "Dây nguồn AC, bộ cáp modular, ốc bắt case, túi đựng cáp");
+			specs.put("intended_use", List.of("Chơi game", "Đồ họa", "Workstation / Server"));
+			specs.put("technologies", "Chuẩn ATX 3.0, PCIe 5.0 12VHPWR, tụ điện Nhật 105°C, Zero RPM Fan Mode");
 		} else if (name.contains("platinum_modular") || name.contains("1300")) {
 			specs.put("wattage", 1300);
 			specs.put("efficiency_rating", "80 Plus Platinum");
 			specs.put("modularity", "Full Modular");
+			specs.put("accessories", "Dây nguồn AC, bộ cáp modular, ốc bắt case, túi đựng cáp");
+			specs.put("intended_use", List.of("Chơi game", "Đồ họa", "Workstation / Server"));
+			specs.put("technologies", "Chuẩn ATX 3.0, PCIe 5.0 12VHPWR, tụ điện Nhật 105°C, Fluid Dynamic Bearing Fan");
 		} else if (name.contains("rm750e")) {
 			specs.put("wattage", 750);
 			specs.put("efficiency_rating", "80 Plus Gold");
 			specs.put("modularity", "Full Modular");
+			specs.put("accessories", "Dây nguồn AC, bộ cáp modular, ốc bắt case");
+			specs.put("intended_use", List.of("Chơi game", "Đồ họa"));
+			specs.put("technologies", "Chuẩn ATX 3.0, tụ điện Nhật 105°C, Zero RPM Fan Mode");
 		}
 	}
 
@@ -526,26 +607,41 @@ public class SampleImageSeeder implements CommandLineRunner {
 			specs.put("supported_mainboards", List.of("M-ATX", "ITX"));
 			specs.put("max_gpu_length_mm", 365);
 			specs.put("max_cpu_cooler_height_mm", 164);
+			specs.put("accessories", "Bộ ốc vít, dây rút, khay đệm");
+			specs.put("intended_use", List.of("Văn phòng", "Chơi game", "Học tập"));
+			specs.put("technologies", "Kính cường lực hút nam châm, lọc bụi từ tính");
 		} else if (name.contains("h9")) {
 			specs.put("size", "Mid Tower");
 			specs.put("supported_mainboards", List.of("ATX", "M-ATX", "ITX"));
 			specs.put("max_gpu_length_mm", 435);
 			specs.put("max_cpu_cooler_height_mm", 165);
+			specs.put("accessories", "Bộ ốc vít, dây rút, quạt tản nhiệt đi kèm");
+			specs.put("intended_use", List.of("Chơi game", "Đồ họa"));
+			specs.put("technologies", "Kính cường lực 2 mặt, hệ thống cable management");
 		} else if (name.contains("vision")) {
 			specs.put("size", "Mid Tower");
 			specs.put("supported_mainboards", List.of("E-ATX", "ATX", "M-ATX", "ITX"));
 			specs.put("max_gpu_length_mm", 455);
 			specs.put("max_cpu_cooler_height_mm", 167);
+			specs.put("accessories", "Bộ ốc vít, dây rút, quạt tản nhiệt đi kèm, giá đỡ VGA");
+			specs.put("intended_use", List.of("Chơi game", "Đồ họa", "Workstation / Server"));
+			specs.put("technologies", "Kính cường lực, lọc bụi từ tính, hỗ trợ radiator 360mm");
 		} else if (name.contains("mini")) {
 			specs.put("size", "Mini Tower");
 			specs.put("supported_mainboards", List.of("ATX", "M-ATX", "ITX"));
 			specs.put("max_gpu_length_mm", 395);
 			specs.put("max_cpu_cooler_height_mm", 170);
+			specs.put("accessories", "Bộ ốc vít, dây rút");
+			specs.put("intended_use", List.of("Văn phòng", "Chơi game", "Học tập"));
+			specs.put("technologies", "Thiết kế compact, lọc bụi từ tính, kính cường lực");
 		} else if (name.contains("luca")) {
 			specs.put("size", "Mid Tower");
 			specs.put("supported_mainboards", List.of("E-ATX", "ATX", "M-ATX", "ITX"));
 			specs.put("max_gpu_length_mm", 400);
 			specs.put("max_cpu_cooler_height_mm", 170);
+			specs.put("accessories", "Bộ ốc vít, dây rút, quạt tản nhiệt đi kèm");
+			specs.put("intended_use", List.of("Chơi game", "Đồ họa"));
+			specs.put("technologies", "Kính cường lực, airflow design, hỗ trợ radiator 360mm");
 		}
 	}
 
@@ -562,6 +658,9 @@ public class SampleImageSeeder implements CommandLineRunner {
 			specs.put("color_accuracy", "99% sRGB");
 			specs.put("has_hdr", true);
 			specs.put("ports", List.of("HDMI", "DisplayPort", "Type-C"));
+			specs.put("accessories", "Cáp HDMI, adapter nguồn, chân đế, sách HDSD");
+			specs.put("intended_use", List.of("Văn phòng", "Đồ họa"));
+			specs.put("technologies", "AMD FreeSync, HDR10, chống lóa mắt");
 		} else if (name.contains("pg27aqwp") || name.contains("xg27acdms")) {
 			specs.put("size_inch", 27);
 			specs.put("resolution", "2560x1440");
@@ -573,6 +672,9 @@ public class SampleImageSeeder implements CommandLineRunner {
 			specs.put("color_accuracy", "99% DCI-P3");
 			specs.put("has_hdr", true);
 			specs.put("ports", List.of("HDMI 2.1", "DisplayPort 1.4"));
+			specs.put("accessories", "Cáp DisplayPort, cáp HDMI, adapter nguồn, chân đế, sách HDSD");
+			specs.put("intended_use", List.of("Chơi game", "Đồ họa"));
+			specs.put("technologies", "NVIDIA G-Sync Compatible, OLED Anti-Burn-in, HDR True Black 400");
 		} else if (name.contains("vy249hgr")) {
 			specs.put("size_inch", 24);
 			specs.put("resolution", "1920x1080");
@@ -584,6 +686,9 @@ public class SampleImageSeeder implements CommandLineRunner {
 			specs.put("color_accuracy", "99% sRGB");
 			specs.put("has_hdr", false);
 			specs.put("ports", List.of("HDMI", "VGA"));
+			specs.put("accessories", "Cáp HDMI, adapter nguồn, chân đế, sách HDSD");
+			specs.put("intended_use", List.of("Văn phòng", "Học tập"));
+			specs.put("technologies", "AMD FreeSync, chống nhấp nháy Flicker-Free, bộ lọc ánh sáng xanh");
 		} else if (name.contains("pg34wcdn")) {
 			specs.put("size_inch", 34);
 			specs.put("resolution", "3440x1440");
@@ -595,6 +700,9 @@ public class SampleImageSeeder implements CommandLineRunner {
 			specs.put("color_accuracy", "99% DCI-P3");
 			specs.put("has_hdr", true);
 			specs.put("ports", List.of("HDMI 2.1", "DisplayPort 1.4", "USB-C"));
+			specs.put("accessories", "Cáp DisplayPort, cáp USB-C, adapter nguồn, chân đế ergonomic, sách HDSD");
+			specs.put("intended_use", List.of("Chơi game", "Đồ họa", "Workstation / Server"));
+			specs.put("technologies", "NVIDIA G-Sync Ultimate, OLED Anti-Burn-in, HDR True Black 500, chống xé hình");
 		} else if (name.contains("xg27aqdng")) {
 			specs.put("size_inch", 27);
 			specs.put("resolution", "2560x1440");
@@ -606,6 +714,9 @@ public class SampleImageSeeder implements CommandLineRunner {
 			specs.put("color_accuracy", "99% DCI-P3");
 			specs.put("has_hdr", true);
 			specs.put("ports", List.of("HDMI 2.1", "DisplayPort 1.4"));
+			specs.put("accessories", "Cáp DisplayPort, cáp HDMI, adapter nguồn, chân đế, sách HDSD");
+			specs.put("intended_use", List.of("Chơi game", "Đồ họa"));
+			specs.put("technologies", "NVIDIA G-Sync Compatible, OLED Anti-Burn-in, HDR True Black 400");
 		}
 	}
 
@@ -619,6 +730,9 @@ public class SampleImageSeeder implements CommandLineRunner {
 			specs.put("height_mm", 154);
 			specs.put("has_rgb", true);
 			specs.put("noise_level_db", 27);
+			specs.put("accessories", "Keo tản nhiệt, gông socket đa nền tảng, sách HDSD");
+			specs.put("intended_use", List.of("Văn phòng", "Chơi game", "Học tập"));
+			specs.put("technologies", "Ống dẫn nhiệt đồng Direct Contact, quạt ARGB");
 		} else if (name.contains("panorama-360")) {
 			specs.put("type", "Liquid Cooling");
 			specs.put("supported_sockets", List.of("LGA1700", "AM5", "AM4"));
@@ -627,6 +741,9 @@ public class SampleImageSeeder implements CommandLineRunner {
 			specs.put("radiator_size_mm", 360);
 			specs.put("has_rgb", true);
 			specs.put("noise_level_db", 30);
+			specs.put("accessories", "Keo tản nhiệt, gông socket, cáp chia ARGB, sách HDSD");
+			specs.put("intended_use", List.of("Chơi game", "Đồ họa", "Workstation / Server"));
+			specs.put("technologies", "Pump thế hệ mới, ống dẫn chống rò rỉ, màn LCD trên pump");
 		} else if (name.contains("th-240")) {
 			specs.put("type", "Liquid Cooling");
 			specs.put("supported_sockets", List.of("LGA1700", "AM5", "AM4"));
@@ -635,6 +752,9 @@ public class SampleImageSeeder implements CommandLineRunner {
 			specs.put("radiator_size_mm", 240);
 			specs.put("has_rgb", true);
 			specs.put("noise_level_db", 28);
+			specs.put("accessories", "Keo tản nhiệt, gông socket, cáp chia ARGB, sách HDSD");
+			specs.put("intended_use", List.of("Chơi game", "Đồ họa"));
+			specs.put("technologies", "Pump ARGB, ống dẫn chống rò rỉ");
 		} else if (name.contains("ak400")) {
 			specs.put("type", "Air Cooling");
 			specs.put("supported_sockets", List.of("LGA1700", "AM5", "AM4"));
@@ -643,6 +763,9 @@ public class SampleImageSeeder implements CommandLineRunner {
 			specs.put("height_mm", 155);
 			specs.put("has_rgb", true);
 			specs.put("noise_level_db", 28);
+			specs.put("accessories", "Keo tản nhiệt, gông socket đa nền tảng, sách HDSD");
+			specs.put("intended_use", List.of("Văn phòng", "Chơi game", "Học tập"));
+			specs.put("technologies", "4 ống dẫn nhiệt đồng, FDB Bearing, quạt ARGB");
 		} else if (name.contains("hydroshift")) {
 			specs.put("type", "Liquid Cooling");
 			specs.put("supported_sockets", List.of("LGA1700", "AM5"));
@@ -651,6 +774,9 @@ public class SampleImageSeeder implements CommandLineRunner {
 			specs.put("radiator_size_mm", 360);
 			specs.put("has_rgb", true);
 			specs.put("noise_level_db", 30);
+			specs.put("accessories", "Keo tản nhiệt, gông socket, cáp chia ARGB, sách HDSD");
+			specs.put("intended_use", List.of("Chơi game", "Đồ họa", "Workstation / Server"));
+			specs.put("technologies", "Pump thế hệ 8, ống dẫn chống rò rỉ, quạt Infinity Mirror ARGB");
 		}
 	}
 
@@ -665,6 +791,9 @@ public class SampleImageSeeder implements CommandLineRunner {
 			specs.put("connection_type", "4-pin PWM");
 			specs.put("has_rgb", true);
 			specs.put("is_addressable_rgb", true);
+			specs.put("accessories", "Ốc gắn fan, đệm chống rung, sách HDSD");
+			specs.put("intended_use", List.of("Chơi game", "Đồ họa"));
+			specs.put("technologies", "Magnetic Dome Bearing, điều tốc PWM, daisy-chain ARGB");
 		} else if (name.contains("eflow-120")) {
 			specs.put("fan_speed_rpm", 1500);
 			specs.put("airflow_cfm", 50.0);
@@ -673,6 +802,9 @@ public class SampleImageSeeder implements CommandLineRunner {
 			specs.put("connection_type", "4-pin PWM");
 			specs.put("has_rgb", true);
 			specs.put("is_addressable_rgb", true);
+			specs.put("accessories", "Ốc gắn fan, đệm chống rung");
+			specs.put("intended_use", List.of("Văn phòng", "Chơi game", "Học tập"));
+			specs.put("technologies", "Hydraulic Bearing, điều tốc PWM, ARGB");
 		}
 	}
 
