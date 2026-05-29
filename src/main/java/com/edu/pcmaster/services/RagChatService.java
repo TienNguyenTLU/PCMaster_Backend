@@ -38,6 +38,10 @@ public class RagChatService {
     // Số kết quả tìm kiếm ngữ nghĩa tối đa mỗi lượt (top-K)
     private static final int TOP_K = 6;
 
+    // Ngưỡng similarity tối thiểu (0.0–1.0) – lọc sản phẩm kém liên quan
+    // COSINE_DISTANCE: score càng cao = càng gần → dùng threshold ~0.45
+    private static final double SIMILARITY_THRESHOLD = 0.45;
+
     // Số lượt hội thoại lịch sử tối đa được gửi kèm (giới hạn context window)
     private static final int MAX_HISTORY_TURNS = 10;
 
@@ -84,6 +88,7 @@ public class RagChatService {
                     SearchRequest.builder()
                             .query(message)
                             .topK(TOP_K)
+                            .similarityThreshold(SIMILARITY_THRESHOLD)
                             .build()
             );
         } catch (Exception e) {
@@ -137,11 +142,26 @@ public class RagChatService {
         }
 
         // ── BƯỚC 5: EXTRACT PRODUCTS ──────────────────────────────────────────
-        // Xây dựng danh sách sản phẩm từ metadata của kết quả tìm kiếm
-        List<RecommendedProductDto> recommended = relevantDocs.stream()
-                .map(doc -> buildProductDto(doc.getMetadata()))
-                .filter(p -> p != null)
-                .collect(Collectors.toList());
+        // Chỉ trả về product cards cho sản phẩm AI THỰC SỰ đề cập trong câu trả lời.
+        // Tránh hiển thị main/case khi user chỉ hỏi về VGA.
+        boolean aiIndicatesNoProducts = aiResponse.contains("không tìm thấy")
+                || aiResponse.contains("không có sản phẩm")
+                || aiResponse.contains("ngoài phạm vi")
+                || aiResponse.contains("Xin lỗi bạn, trợ lý AI đang gặp sự cố");
+
+        List<RecommendedProductDto> recommended;
+        if (aiIndicatesNoProducts || relevantDocs.isEmpty()) {
+            recommended = List.of();
+        } else {
+            // Normalize AI response một lần để so sánh
+            String aiResponseLower = aiResponse.toLowerCase();
+
+            recommended = relevantDocs.stream()
+                    .map(doc -> buildProductDto(doc.getMetadata()))
+                    .filter(p -> p != null)
+                    .filter(p -> isProductMentionedInResponse(p.name(), aiResponseLower))
+                    .collect(Collectors.toList());
+        }
 
         return new ChatResponse(aiResponse, recommended);
     }
@@ -189,5 +209,58 @@ public class RagChatService {
             System.err.println("[RAG] Failed to parse product metadata: " + e.getMessage());
             return null;
         }
+    }
+
+    /**
+     * Kiểm tra xem sản phẩm có được AI đề cập trong câu trả lời không.
+     *
+     * Logic: Tách tên sản phẩm thành các token đặc trưng (≥3 ký tự, bỏ noise words).
+     * Sản phẩm được coi là "được đề cập" nếu AI response chứa ≥50% số token đặc trưng
+     * HOẶC chứa bất kỳ token nào là mã model (chứa số, ví dụ: "4060", "RTX", "B760M").
+     *
+     * Ví dụ:
+     *   Tên: "GIGABYTE GeForce RTX 4060 EAGLE OC 8G"
+     *   Tokens đặc trưng: [gigabyte, geforce, rtx, 4060, eagle]
+     *   AI response chứa "RTX 4060" → match token "rtx" + "4060" → ĐỀ XUẤT ✓
+     *   AI response chỉ nói "card đồ họa" → không match token nào → BỎ QUA ✗
+     */
+    private boolean isProductMentionedInResponse(String productName, String aiResponseLower) {
+        if (productName == null || productName.isBlank()) return false;
+
+        // Các từ phổ biến không mang tính nhận dạng sản phẩm
+        var noiseWords = java.util.Set.of(
+                "the", "for", "and", "with", "pro", "max", "plus", "super",
+                "edition", "series", "gaming", "desktop", "laptop"
+        );
+
+        // Tách tên thành token, lọc noise và token quá ngắn
+        String[] tokens = productName.toLowerCase().split("[\\s\\-/()\\[\\],]+");
+        List<String> significantTokens = new ArrayList<>();
+        for (String token : tokens) {
+            if (token.length() >= 3 && !noiseWords.contains(token)) {
+                significantTokens.add(token);
+            }
+        }
+
+        if (significantTokens.isEmpty()) return false;
+
+        // Đếm bao nhiêu token xuất hiện trong AI response
+        int matchCount = 0;
+        boolean hasModelNumberMatch = false;
+        for (String token : significantTokens) {
+            if (aiResponseLower.contains(token)) {
+                matchCount++;
+                // Token chứa số thường là mã model (4060, 7800xt, b760m) → rất đặc trưng
+                if (token.matches(".*\\d+.*")) {
+                    hasModelNumberMatch = true;
+                }
+            }
+        }
+
+        // Match nếu:
+        // 1. Có match mã model (rất chính xác, ví dụ: "4060" chỉ khớp đúng VGA RTX 4060)
+        // 2. HOẶC ≥50% token đặc trưng được đề cập (phòng trường hợp tên không có số)
+        double matchRatio = (double) matchCount / significantTokens.size();
+        return hasModelNumberMatch || matchRatio >= 0.5;
     }
 }

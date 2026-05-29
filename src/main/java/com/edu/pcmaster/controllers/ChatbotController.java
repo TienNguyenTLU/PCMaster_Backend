@@ -1,5 +1,6 @@
 package com.edu.pcmaster.controllers;
 
+import com.edu.pcmaster.dto.chatbot.ChatMessageDto;
 import com.edu.pcmaster.dto.chatbot.ChatRequest;
 import com.edu.pcmaster.dto.chatbot.ChatResponse;
 import com.edu.pcmaster.services.RagChatService;
@@ -35,7 +36,7 @@ public class ChatbotController {
             return ResponseEntity.badRequest().build();
         }
 
-        List history = request.history() != null ? request.history() : List.of();
+        List<ChatMessageDto> history = request.history() != null ? request.history() : List.of();
         ChatResponse response = ragChatService.chat(request.message().trim(), history);
         return ResponseEntity.ok(response);
     }

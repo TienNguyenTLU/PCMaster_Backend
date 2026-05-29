@@ -4,6 +4,8 @@ import com.edu.pcmaster.models.Brand;
 import com.edu.pcmaster.models.Category;
 import com.edu.pcmaster.models.Product;
 import com.edu.pcmaster.repositories.ProductRepository;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Service;
@@ -13,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -30,16 +33,19 @@ public class EmbeddingIngestionService {
     private final VectorStore vectorStore;
     private final ProductRepository productRepository;
     private final ProductService productService;
+    private final ObjectMapper objectMapper;
 
     // Số lượng document tối đa trong mỗi batch gửi cho Ollama để embed
     private static final int BATCH_SIZE = 50;
 
     public EmbeddingIngestionService(VectorStore vectorStore,
                                      ProductRepository productRepository,
-                                     ProductService productService) {
+                                     ProductService productService,
+                                     ObjectMapper objectMapper) {
         this.vectorStore = vectorStore;
         this.productRepository = productRepository;
         this.productService = productService;
+        this.objectMapper = objectMapper;
     }
 
     /**
@@ -51,18 +57,26 @@ public class EmbeddingIngestionService {
     public int reindexAll() {
         List<Product> allProducts = productRepository.findAll();
 
-        // Bước 1: Xóa tất cả embedding cũ theo ID xác định trước
-        List<String> existingDocIds = allProducts.stream()
-                .map(p -> "product-" + p.getId())
-                .collect(Collectors.toList());
 
-        if (!existingDocIds.isEmpty()) {
+        // Bước 1: Xóa embedding cũ theo từng ID để tránh một ID lỗi làm bỏ qua toàn bộ
+        // Dùng UUID deterministic (nameUUIDFromBytes) để khớp với ID đã lưu khi add
+        List<String> existingDocIds = allProducts.stream()
+                .map(p -> toDocumentId(p.getId()))
+                .collect(Collectors.toList());
+        int deletedCount = 0;
+        int deleteFailCount = 0;
+        for (String docId : existingDocIds) {
             try {
-                vectorStore.delete(existingDocIds);
+                vectorStore.delete(List.of(docId));
+                deletedCount++;
             } catch (Exception e) {
-                // Bỏ qua lỗi xóa (document có thể chưa tồn tại lần đầu reindex)
-                System.out.println("[RAG] Note: Delete existing embeddings returned: " + e.getMessage());
+                // Bỏ qua nếu document chưa tồn tại (lần reindex đầu tiên)
+                deleteFailCount++;
             }
+        }
+        if (deleteFailCount > 0) {
+            System.out.printf("[RAG] Delete: %d succeeded, %d skipped (not yet indexed).%n",
+                    deletedCount, deleteFailCount);
         }
 
         // Bước 2: Lấy bản đồ khuyến mãi hiện tại
@@ -135,8 +149,22 @@ public class EmbeddingIngestionService {
             content.append("Mô tả: ").append(desc).append("\n");
         }
 
-        if (product.getSpecsJson() != null && !product.getSpecsJson().isEmpty()) {
-            content.append("Thông số kỹ thuật: ").append(product.getSpecsJson().toString()).append("\n");
+        if (product.getSpecsJson() != null && !product.getSpecsJson().isNull()) {
+            try {
+                // Chuyển JsonNode thành các cặp key=value để embedding rõ nghĩa hơn
+                JsonNode specs = product.getSpecsJson();
+                StringBuilder specsText = new StringBuilder();
+                specs.fields().forEachRemaining(entry ->
+                        specsText.append(entry.getKey()).append(": ")
+                                 .append(entry.getValue().asText()).append("; ")
+                );
+                if (!specsText.isEmpty()) {
+                    content.append("Thông số kỹ thuật: ").append(specsText).append("\n");
+                }
+            } catch (Exception e) {
+                // Fallback: dùng toString() nếu không parse được
+                content.append("Thông số kỹ thuật: ").append(product.getSpecsJson()).append("\n");
+            }
         }
 
         // Metadata cấu trúc dùng để tái tạo RecommendedProductDto
@@ -155,10 +183,19 @@ public class EmbeddingIngestionService {
         metadata.put("source", "product"); // Tag để phân biệt nguồn dữ liệu
 
         return Document.builder()
-                .id("product-" + product.getId())
+                .id(toDocumentId(product.getId()))   // UUID deterministic từ productId
                 .text(content.toString())
                 .metadata(metadata)
                 .build();
+    }
+
+    /**
+     * Sinh UUID deterministic từ product ID.
+     * UUID.nameUUIDFromBytes đảm bảo: cùng productId → cùng UUID → delete và add nhất quán.
+     * PGVector yêu cầu document ID phải là UUID hợp lệ.
+     */
+    private String toDocumentId(Long productId) {
+        return UUID.nameUUIDFromBytes(("product-" + productId).getBytes()).toString();
     }
 
     /**
