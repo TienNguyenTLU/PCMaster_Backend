@@ -77,7 +77,7 @@ public class CoreSeeder implements CommandLineRunner {
 	}
 
 	private void seedCategories() {
-		List<String> categories = List.of("LAPTOP", "PC_SYSTEM", "PC_GEAR");
+		List<String> categories = List.of("LAPTOP", "PC_SYSTEM", "PC_GEAR", "CPU", "CASE", "COOLER", "FAN", "MAINBOARD", "MONITOR", "PSU", "RAM", "SSD", "VGA");
 		for (String name : categories) {
 			String slug = name.toLowerCase(Locale.ROOT).replace("_", "-");
 			if (categoryRepository.findBySlug(slug).isEmpty()) {

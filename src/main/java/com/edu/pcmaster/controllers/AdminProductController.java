@@ -10,10 +10,12 @@ import java.math.BigDecimal;
 
 import com.edu.pcmaster.dto.brand.BrandResponse;
 import com.edu.pcmaster.dto.category.CategoryResponse;
+import com.edu.pcmaster.dto.product.GearvnImportRequest;
 import com.edu.pcmaster.dto.product.ProductRequest;
 import com.edu.pcmaster.dto.product.ProductResponse;
 import com.edu.pcmaster.models.Product;
 import com.edu.pcmaster.services.ProductService;
+import com.edu.pcmaster.services.GearvnCrawlerService;
 
 import jakarta.validation.Valid;
 
@@ -22,9 +24,11 @@ import jakarta.validation.Valid;
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminProductController {
 	private final ProductService productService;
+	private final GearvnCrawlerService gearvnCrawlerService;
 
-	public AdminProductController(ProductService productService) {
+	public AdminProductController(ProductService productService, GearvnCrawlerService gearvnCrawlerService) {
 		this.productService = productService;
+		this.gearvnCrawlerService = gearvnCrawlerService;
 	}
 
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -44,6 +48,18 @@ public class AdminProductController {
 	public void delete(@PathVariable Long id) {
 		productService.delete(id);
 	}
+
+	@PostMapping("/gearvn/preview")
+	public Map<String, Object> previewGearvnProduct(@Valid @RequestBody GearvnImportRequest request) {
+		return gearvnCrawlerService.previewProduct(request);
+	}
+
+	@PostMapping("/gearvn/import")
+	public ProductResponse importFromGearvn(@Valid @RequestBody GearvnImportRequest request) {
+		return gearvnCrawlerService.importProduct(request);
+	}
+
+
 
 	private ProductResponse toResponse(Product product, Map<Long, Integer> discountsMap) {
 		List<ProductResponse.PcComponentResponse> pcComponents = null;
