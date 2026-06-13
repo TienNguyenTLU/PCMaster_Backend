@@ -68,6 +68,15 @@ public class ProductService {
 				.orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 	}
 
+	public Product getBySlugOrId(String identifier) {
+		if (identifier != null && identifier.matches("^\\d+$")) {
+			return productRepository.findById(Long.parseLong(identifier))
+					.orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+		}
+		return productRepository.findBySlug(identifier)
+				.orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+	}
+
 	public Product create(ProductRequest request, MultipartFile thumbnailFile) {
 		Category category = categoryRepository.findById(request.categoryId())
 				.orElseThrow(() -> new ResourceNotFoundException("Category not found"));
@@ -231,7 +240,12 @@ public class ProductService {
 			return null;
 		}
 		try {
-			return objectMapper.readTree(specsJson);
+			JsonNode parsed = objectMapper.readTree(specsJson);
+			String componentType = "";
+			if (parsed.has("component_type")) {
+				componentType = parsed.get("component_type").asText();
+			}
+			return com.edu.pcmaster.common.util.ProductSpecNormalizer.normalize(parsed, componentType);
 		} catch (Exception ex) {
 			throw new BadRequestException("Invalid specsJson format");
 		}

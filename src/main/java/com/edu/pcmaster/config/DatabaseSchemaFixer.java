@@ -30,7 +30,11 @@ public class DatabaseSchemaFixer implements CommandLineRunner {
 			jdbcTemplate.execute("ALTER TABLE orders ADD COLUMN IF NOT EXISTS shipping_address VARCHAR(500)");
 			jdbcTemplate.execute("ALTER TABLE orders ADD COLUMN IF NOT EXISTS document_url VARCHAR(255)");
 
-			System.out.println("[DatabaseSchemaFixer] Database schema for Order has been successfully verified/updated!");
+			// Add phone and address to users if missing
+			jdbcTemplate.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS phone VARCHAR(30)");
+			jdbcTemplate.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS address VARCHAR(500)");
+
+			System.out.println("[DatabaseSchemaFixer] Database schema for Order and User has been successfully verified/updated!");
 		} catch (Exception e) {
 			System.err.println("[DatabaseSchemaFixer] Error updating database schema: " + e.getMessage());
 		}

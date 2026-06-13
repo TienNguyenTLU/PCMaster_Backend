@@ -10,7 +10,7 @@ import com.edu.pcmaster.services.DashboardService;
 
 @RestController
 @RequestMapping("/api/admin/dashboard")
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
 public class AdminDashboardController {
     private final DashboardService dashboardService;
 

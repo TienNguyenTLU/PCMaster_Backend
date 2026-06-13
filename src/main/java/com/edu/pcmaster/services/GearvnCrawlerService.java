@@ -42,140 +42,7 @@ public class GearvnCrawlerService {
 
 	private static final Logger log = LoggerFactory.getLogger(GearvnCrawlerService.class);
 
-	private static final Map<String, String> LABEL_TRANSLATIONS = new HashMap<>();
-	static {
-		LABEL_TRANSLATIONS.put("thương hiệu", "brand");
-		LABEL_TRANSLATIONS.put("bảo hành", "warranty");
-		LABEL_TRANSLATIONS.put("dòng sản phẩm", "product_series");
-		LABEL_TRANSLATIONS.put("dòng vga", "vga_series");
-		LABEL_TRANSLATIONS.put("số nhân cuda cores (nvidia)", "cuda_cores");
-		LABEL_TRANSLATIONS.put("số nhân cuda cores", "cuda_cores");
-		LABEL_TRANSLATIONS.put("ai tops", "ai_tops");
-		LABEL_TRANSLATIONS.put("xung nhịp gpu base", "base_clock");
-		LABEL_TRANSLATIONS.put("xung nhịp gpu boost", "boost_clock");
-		LABEL_TRANSLATIONS.put("bộ nhớ (vram)", "vram");
-		LABEL_TRANSLATIONS.put("bộ nhớ vram", "vram");
-		LABEL_TRANSLATIONS.put("bus bộ nhớ", "memory_bus");
-		LABEL_TRANSLATIONS.put("kiểu bộ nhớ", "memory_type");
-		LABEL_TRANSLATIONS.put("chuẩn giao tiếp", "interface");
-		LABEL_TRANSLATIONS.put("tản nhiệt nước", "water_cooled");
-		LABEL_TRANSLATIONS.put("kích thước radiator tản nhiệt", "radiator_dimensions");
-		LABEL_TRANSLATIONS.put("kích thước radiator", "radiator_dimensions");
-		LABEL_TRANSLATIONS.put("số quạt tản nhiệt", "fan_count");
-		LABEL_TRANSLATIONS.put("cổng kết nối", "ports");
-		LABEL_TRANSLATIONS.put("directx hỗ trợ", "directx");
-		LABEL_TRANSLATIONS.put("hỗ trợ dlss", "dlss");
-		LABEL_TRANSLATIONS.put("hỗ trợ ray tracing", "ray_tracing");
-		LABEL_TRANSLATIONS.put("opengl hỗ trợ", "opengl");
-		LABEL_TRANSLATIONS.put("nhân đồ họa", "graphics_processor");
-		LABEL_TRANSLATIONS.put("hỗ trợ đa màn hình", "multi_monitor");
-		LABEL_TRANSLATIONS.put("số slot chiếm dụng", "slot_width");
-		LABEL_TRANSLATIONS.put("độ phân giải tối đa", "max_resolution");
-		LABEL_TRANSLATIONS.put("đầu cấp nguồn", "power_connectors");
-		LABEL_TRANSLATIONS.put("nguồn đề xuất", "recommended_psu");
-		LABEL_TRANSLATIONS.put("tdp", "tdp");
-		LABEL_TRANSLATIONS.put("kích thước card", "dimensions");
-		LABEL_TRANSLATIONS.put("phụ kiện đi kèm", "accessories");
-		LABEL_TRANSLATIONS.put("số nhân", "cores");
-		LABEL_TRANSLATIONS.put("số luồng", "threads");
-		LABEL_TRANSLATIONS.put("xung nhịp cơ bản", "base_clock");
-		LABEL_TRANSLATIONS.put("xung nhịp tối đa", "boost_clock");
-		LABEL_TRANSLATIONS.put("tiến trình", "lithography");
-		LABEL_TRANSLATIONS.put("socket", "socket");
-		LABEL_TRANSLATIONS.put("hỗ trợ ram", "memory_support");
-		LABEL_TRANSLATIONS.put("dung lượng", "capacity_gb");
-		LABEL_TRANSLATIONS.put("capacity", "capacity_gb");
-		LABEL_TRANSLATIONS.put("bus ram", "bus_speed_mhz");
-		LABEL_TRANSLATIONS.put("tốc độ ram", "bus_speed_mhz");
-		LABEL_TRANSLATIONS.put("loại ram", "ram_type");
-		LABEL_TRANSLATIONS.put("lo_i_ram", "ram_type");
-		LABEL_TRANSLATIONS.put("rgb_led", "has_rgb");
-		LABEL_TRANSLATIONS.put("đèn led rgb", "has_rgb");
-		LABEL_TRANSLATIONS.put("cas_latency", "latency_cl");
-		LABEL_TRANSLATIONS.put("độ trễ lat", "latency_cl");
-		LABEL_TRANSLATIONS.put("chuẩn mainboard", "form_factor");
-		LABEL_TRANSLATIONS.put("chipset", "chipset");
-		LABEL_TRANSLATIONS.put("khe cắm ram", "ram_slots");
-		LABEL_TRANSLATIONS.put("dung lượng ram tối đa", "max_ram_gb");
-		LABEL_TRANSLATIONS.put("hãng sản xuất", "brand");
-		LABEL_TRANSLATIONS.put("nhà sản xuất", "brand");
-		LABEL_TRANSLATIONS.put("trọng lượng", "weight");
-		LABEL_TRANSLATIONS.put("cân nặng", "weight");
 
-		// PSU translations
-		LABEL_TRANSLATIONS.put("chu_n_ch_ng_nh_n", "efficiency_rating");
-		LABEL_TRANSLATIONS.put("chuẩn chứng nhận", "efficiency_rating");
-		LABEL_TRANSLATIONS.put("hi_u_su_t", "efficiency_rating");
-		LABEL_TRANSLATIONS.put("hiệu suất", "efficiency_rating");
-		LABEL_TRANSLATIONS.put("lo_i_modular", "modularity");
-		LABEL_TRANSLATIONS.put("loại modular", "modularity");
-		LABEL_TRANSLATIONS.put("chu_n_ngu_n", "form_factor");
-		LABEL_TRANSLATIONS.put("chuẩn nguồn", "form_factor");
-		LABEL_TRANSLATIONS.put("c_ng_su_t", "wattage");
-		LABEL_TRANSLATIONS.put("công suất", "wattage");
-		LABEL_TRANSLATIONS.put("c_ng_su_t_t_i_a", "wattage");
-		LABEL_TRANSLATIONS.put("công suất tối đa", "wattage");
-
-		// CPU translations
-		LABEL_TRANSLATIONS.put("dòng cpu", "series");
-		LABEL_TRANSLATIONS.put("d_ng_cpu", "series");
-		LABEL_TRANSLATIONS.put("thế hệ cpu", "generation");
-		LABEL_TRANSLATIONS.put("th_h_cpu", "generation");
-		LABEL_TRANSLATIONS.put("kiến trúc", "architecture");
-		LABEL_TRANSLATIONS.put("ki_n_tr_c", "architecture");
-		LABEL_TRANSLATIONS.put("platform", "platform");
-		LABEL_TRANSLATIONS.put("bộ nhớ đệm l1 cache", "l1_cache");
-		LABEL_TRANSLATIONS.put("b_nh_m_l1_cache", "l1_cache");
-		LABEL_TRANSLATIONS.put("bộ nhớ đệm l2 cache", "l2_cache");
-		LABEL_TRANSLATIONS.put("b_nh_m_l2_cache", "l2_cache");
-		LABEL_TRANSLATIONS.put("bộ nhớ đệm l3 cache", "l3_cache");
-		LABEL_TRANSLATIONS.put("b_nh_m_l3_cache", "l3_cache");
-		LABEL_TRANSLATIONS.put("xung nhịp cơ bản (p-core base)", "base_clock_ghz");
-		LABEL_TRANSLATIONS.put("xung_nh_p_c_b_n_p_core_base", "base_clock_ghz");
-		LABEL_TRANSLATIONS.put("xung nhịp tối đa (p-core turbo)", "boost_clock_ghz");
-		LABEL_TRANSLATIONS.put("xung_nh_p_t_i_a_p_core_turbo", "boost_clock_ghz");
-		LABEL_TRANSLATIONS.put("đồ họa tích hợp", "integrated_gpu");
-		LABEL_TRANSLATIONS.put("h_a_t_ch_h_p", "integrated_gpu");
-		LABEL_TRANSLATIONS.put("chip đồ họa tích hợp", "gpu_integrated_name");
-		LABEL_TRANSLATIONS.put("chip_h_a_t_ch_h_p", "gpu_integrated_name");
-		LABEL_TRANSLATIONS.put("hỗ trợ pcie", "pcie_support");
-		LABEL_TRANSLATIONS.put("h_tr_pcie", "pcie_support");
-		LABEL_TRANSLATIONS.put("hỗ trợ loại ram", "memory_support");
-		LABEL_TRANSLATIONS.put("h_tr_lo_i_ram", "memory_support");
-		LABEL_TRANSLATIONS.put("chất liệu vỏ / mặt dưới", "material");
-		LABEL_TRANSLATIONS.put("chất liệu vỏ mặt dưới", "material");
-		LABEL_TRANSLATIONS.put("ch_t_li_u_v_m_t_d_i", "material");
-		LABEL_TRANSLATIONS.put("số kênh ram", "memory_channels");
-		LABEL_TRANSLATIONS.put("s_k_nh_ram", "memory_channels");
-		LABEL_TRANSLATIONS.put("tdp (điện năng tiêu thụ)", "tdp_w");
-		LABEL_TRANSLATIONS.put("tdp_i_n_n_ng_ti_u_th", "tdp_w");
-		LABEL_TRANSLATIONS.put("tốc độ ram tối đa", "memory_speed");
-		LABEL_TRANSLATIONS.put("t_c_ram_t_i_a", "memory_speed");
-		LABEL_TRANSLATIONS.put("tình trạng", "condition");
-		LABEL_TRANSLATIONS.put("t_nh_tr_ng", "condition");
-		LABEL_TRANSLATIONS.put("warranty", "warranty");
-
-		// P-core and E-core mappings
-		LABEL_TRANSLATIONS.put("số nhân p-core", "p_cores");
-		LABEL_TRANSLATIONS.put("s_nh_n_p_core", "p_cores");
-		LABEL_TRANSLATIONS.put("số nhân e-core", "e_cores");
-		LABEL_TRANSLATIONS.put("s_nh_n_e_core", "e_cores");
-		LABEL_TRANSLATIONS.put("xung nhịp cơ bản (e-core base)", "e_core_base_clock_ghz");
-		LABEL_TRANSLATIONS.put("xung_nh_p_c_b_n_e_core_base", "e_core_base_clock_ghz");
-		LABEL_TRANSLATIONS.put("xung nhịp tối đa (e-core turbo)", "e_core_boost_clock_ghz");
-		LABEL_TRANSLATIONS.put("xung_nh_p_t_i_a_e_core_turbo", "e_core_boost_clock_ghz");
-		LABEL_TRANSLATIONS.put("tdp max (điện năng tiêu thụ tối đa)", "tdp_w");
-		LABEL_TRANSLATIONS.put("tdp_max_i_n_n_ng_ti_u_th_t_i_a", "tdp_w");
-
-		// Mainboard translations
-		LABEL_TRANSLATIONS.put("ki_u_ram_h_tr", "ram_type");
-		LABEL_TRANSLATIONS.put("k_ch_th_c", "form_factor");
-		LABEL_TRANSLATIONS.put("s_khe_m_2", "m2_slots");
-		LABEL_TRANSLATIONS.put("khe_ram_t_i_a", "ram_slots");
-		LABEL_TRANSLATIONS.put("max_memory_capacity", "max_ram_gb");
-		LABEL_TRANSLATIONS.put("wi_fi", "has_wifi");
-		LABEL_TRANSLATIONS.put("wifi", "has_wifi");
-	}
 
 	private final ProductRepository productRepository;
 	private final BrandRepository brandRepository;
@@ -441,11 +308,11 @@ public class GearvnCrawlerService {
 					Element th = row.selectFirst("th");
 					Element td = row.selectFirst("td");
 					if (th != null && td != null) {
-						String key = cleanString(th.text());
-						String val = cleanString(td.text());
+						String key = com.edu.pcmaster.common.util.ProductSpecNormalizer.cleanString(th.text());
+						String val = com.edu.pcmaster.common.util.ProductSpecNormalizer.cleanString(td.text());
 						if (!key.isEmpty() && !val.isEmpty()) {
-							String translatedKey = translateKey(key, componentType);
-							specs.put(translatedKey, normalizeValue(translatedKey, val));
+							String translatedKey = com.edu.pcmaster.common.util.ProductSpecNormalizer.translateKey(key, componentType);
+							specs.put(translatedKey, com.edu.pcmaster.common.util.ProductSpecNormalizer.normalizeValueString(translatedKey, val));
 						}
 					}
 				}
@@ -482,99 +349,7 @@ public class GearvnCrawlerService {
 		return url;
 	}
 
-	private String translateKey(String key, String componentType) {
-		String keyLower = key.toLowerCase().trim();
 
-		// Custom translation mapping for PSU to map "form factor" to "dimensions"
-		if ("PSU".equalsIgnoreCase(componentType)) {
-			String snake = toSnakeCase(keyLower);
-			if (snake.equals("form_factor") || snake.equals("form_factor_psu")) {
-				return "dimensions";
-			}
-		}
-
-		String translation = LABEL_TRANSLATIONS.get(keyLower);
-		if (translation != null) {
-			return translation;
-		}
-
-		// Fallback to snake_case key lookup to handle NFD/NFC encoding mismatches
-		String snakeKey = toSnakeCase(key);
-		translation = LABEL_TRANSLATIONS.get(snakeKey);
-		if (translation != null) {
-			return translation;
-		}
-
-		return snakeKey;
-	}
-
-	private String normalizeValue(String key, String val) {
-		if (val == null) return "";
-		String valTrimmed = val.trim();
-		String valLower = valTrimmed.toLowerCase();
-
-		// Normalize boolean values
-		if (valLower.equals("có") || valLower.equals("yes") || valLower.equals("true")) {
-			return "true";
-		}
-		if (valLower.equals("không") || valLower.equals("no") || valLower.equals("false")) {
-			return "false";
-		}
-
-		// WiFi detection for has_wifi
-		if (key.equals("has_wifi")) {
-			if (valLower.equals("không") || valLower.equals("no") || valLower.equals("false") || valLower.isEmpty()) {
-				return "false";
-			}
-			return "true";
-		}
-
-		// Clean up duplicate units or suffixes (e.g. MB MB, KB KB, GB GB)
-		valTrimmed = valTrimmed.replaceAll("(?i)\\b(mb|kb|gb)\\b\\s+\\b\\1\\b", "$1");
-
-		// Clean numeric suffixes for specific fields to match type constraints
-		if (key.equals("cores") || key.equals("threads") || key.equals("p_cores") || key.equals("e_cores")
-				|| key.contains("slots") || key.contains("sata") || key.contains("usb") || key.contains("ports")
-				|| key.contains("cores") || key.contains("fan") || key.contains("count")) {
-			valTrimmed = valTrimmed.replaceAll("(?i)\\s*(cores|threads| nhân| luồng|khe|cổng| slots| slot| ram| quạt| quat)", "");
-		}
-		if (key.equals("base_clock_ghz") || key.equals("boost_clock_ghz") || key.contains("clock")) {
-			valTrimmed = valTrimmed.replaceAll("(?i)\\s*(ghz|mhz| ghz| mhz)", "");
-		}
-		if (key.equals("tdp_w") || key.contains("tdp") || key.contains("psu") || key.contains("wattage")) {
-			valTrimmed = valTrimmed.replaceAll("(?i)\\s*(w| w)", "");
-		}
-		if (key.equals("max_ram_gb") || key.equals("max_memory_capacity") || key.equals("capacity_gb") || key.equals("capacity")) {
-			valTrimmed = valTrimmed.replaceAll("(?i)\\s*(gb|tb| gb| tb)", "");
-		}
-		if (key.equals("latency_cl") || key.equals("latency") || key.equals("cas_latency")) {
-			valTrimmed = valTrimmed.replaceAll("(?i)\\s*(cl| cl)", "");
-		}
-		if (key.equals("chipset")) {
-			valTrimmed = valTrimmed.replaceAll("(?i)\\b(amd|intel)\\b\\s*", "");
-		}
-		if (key.contains("weight")) {
-			valTrimmed = valTrimmed.replaceAll("(?i)\\s*(kg|g| kg| g)", "");
-		}
-		if (key.contains("bus")) {
-			valTrimmed = valTrimmed.replaceAll("(?i)\\s*(bit|b| bit| b)", "");
-		}
-
-		return valTrimmed;
-	}
-
-	private String toSnakeCase(String text) {
-		return text.toLowerCase()
-				.replaceAll("[^a-z0-9]+", "_")
-				.replaceAll("^_+|_+$", "");
-	}
-
-	private String cleanString(String text) {
-		if (text == null) return "";
-		String normalized = Normalizer.normalize(text, Normalizer.Form.NFC);
-		normalized = normalized.replaceAll("[\\s\\h\\xa0\\u2007\\u202F\\u00A0]+", " ");
-		return normalized.trim();
-	}
 
 	private String generateSlug(String text) {
 		if (text == null || text.isEmpty()) return "product";

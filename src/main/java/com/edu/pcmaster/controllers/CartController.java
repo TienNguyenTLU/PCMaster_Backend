@@ -1,5 +1,6 @@
 package com.edu.pcmaster.controllers;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -27,6 +28,9 @@ public class CartController {
 
     @GetMapping
     public ResponseEntity<CartDto> getCart(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+        if (userPrincipal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
         Long userId = userPrincipal.getUser().getId();
         return ResponseEntity.ok(cartService.getCartForUser(userId));
     }
@@ -35,6 +39,9 @@ public class CartController {
     public ResponseEntity<CartDto> addToCart(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
             @RequestBody AddToCartRequest request) {
+        if (userPrincipal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
         Long userId = userPrincipal.getUser().getId();
         return ResponseEntity.ok(cartService.addToCart(userId, request));
     }
@@ -44,6 +51,9 @@ public class CartController {
             @AuthenticationPrincipal UserPrincipal userPrincipal,
             @PathVariable Long itemId,
             @RequestBody UpdateCartItemRequest request) {
+        if (userPrincipal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
         Long userId = userPrincipal.getUser().getId();
         return ResponseEntity.ok(cartService.updateQuantity(userId, itemId, request.getQuantity()));
     }
@@ -52,12 +62,18 @@ public class CartController {
     public ResponseEntity<CartDto> removeItem(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
             @PathVariable Long itemId) {
+        if (userPrincipal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
         Long userId = userPrincipal.getUser().getId();
         return ResponseEntity.ok(cartService.removeItem(userId, itemId));
     }
 
     @DeleteMapping
     public ResponseEntity<Void> clearCart(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+        if (userPrincipal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
         Long userId = userPrincipal.getUser().getId();
         cartService.clearCart(userId);
         return ResponseEntity.noContent().build();

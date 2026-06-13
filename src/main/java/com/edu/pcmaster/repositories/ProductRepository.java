@@ -14,19 +14,18 @@ import com.edu.pcmaster.models.Product;
 public interface ProductRepository extends JpaRepository<Product, Long> {
 	Optional<Product> findBySlug(String slug);
 
-	@Query(value = "select * from products p "
-			+ "where (:categoryId is null or p.category_id = :categoryId) "
-			+ "and (:brandId is null or p.brand_id = :brandId) "
-			+ "and (:keyword is null or :keyword = '' "
-			+ "or p.name::text ilike concat('%', :keyword, '%') "
-			+ "or p.description::text ilike concat('%', :keyword, '%'))",
-			countQuery = "select count(*) from products p "
-					+ "where (:categoryId is null or p.category_id = :categoryId) "
-					+ "and (:brandId is null or p.brand_id = :brandId) "
-					+ "and (:keyword is null or :keyword = '' "
-					+ "or p.name::text ilike concat('%', :keyword, '%') "
-					+ "or p.description::text ilike concat('%', :keyword, '%'))",
-			nativeQuery = true)
+	@Query(value = "SELECT p FROM Product p LEFT JOIN FETCH p.category LEFT JOIN FETCH p.brand "
+			+ "WHERE (:categoryId IS NULL OR p.category.id = :categoryId) "
+			+ "AND (:brandId IS NULL OR p.brand.id = :brandId) "
+			+ "AND (:keyword IS NULL OR :keyword = '' "
+			+ "OR LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) "
+			+ "OR LOWER(p.description) LIKE LOWER(CONCAT('%', :keyword, '%')))",
+			countQuery = "SELECT count(p) FROM Product p "
+					+ "WHERE (:categoryId IS NULL OR p.category.id = :categoryId) "
+					+ "AND (:brandId IS NULL OR p.brand.id = :brandId) "
+					+ "AND (:keyword IS NULL OR :keyword = '' "
+					+ "OR LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) "
+					+ "OR LOWER(p.description) LIKE LOWER(CONCAT('%', :keyword, '%')))")
 	Page<Product> search(@Param("categoryId") Long categoryId,
 						 @Param("brandId") Long brandId,
 						 @Param("keyword") String keyword,
@@ -39,5 +38,11 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 	List<Product> findCompatibleComponents(@Param("componentType") String componentType,
 									  @Param("socket") String socket,
 									  @Param("ramType") String ramType);
+	@Query("SELECT p FROM Product p LEFT JOIN FETCH p.category LEFT JOIN FETCH p.brand " +
+		   "WHERE p.stock > 0 AND (" +
+		   "LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+		   "OR LOWER(p.category.name) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+		   "OR LOWER(p.brand.name) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+	List<Product> searchByKeyword(@Param("keyword") String keyword);
 }
 

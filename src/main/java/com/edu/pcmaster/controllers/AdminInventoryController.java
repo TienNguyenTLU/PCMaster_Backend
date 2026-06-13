@@ -21,11 +21,12 @@ import com.edu.pcmaster.dto.inventory.InventoryBatchResponse;
 import com.edu.pcmaster.dto.inventory.IssueSlipResponse;
 import com.edu.pcmaster.models.InventoryBatch;
 import com.edu.pcmaster.models.InventoryIssueSlip;
+import com.edu.pcmaster.models.InventoryIssueSlipItem;
 import com.edu.pcmaster.services.InventoryService;
 
 @RestController
 @RequestMapping("/api/admin/inventory")
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
 public class AdminInventoryController {
 
 	private final InventoryService inventoryService;
@@ -73,6 +74,11 @@ public class AdminInventoryController {
 		return ResponseEntity.ok(toResponse(inventoryService.createIssueSlip(orderId)));
 	}
 
+	@PostMapping("/issue-slips/create-manual")
+	public ResponseEntity<IssueSlipResponse> createManualIssueSlip(@org.springframework.web.bind.annotation.RequestBody com.edu.pcmaster.dto.inventory.CreateManualIssueSlipRequest request) {
+		return ResponseEntity.ok(toResponse(inventoryService.createManualIssueSlip(request)));
+	}
+
 	@PostMapping("/issue-slips/{id}/dispatch")
 	public ResponseEntity<IssueSlipResponse> dispatchIssueSlip(@PathVariable Long id) {
 		return ResponseEntity.ok(toResponse(inventoryService.dispatchIssueSlip(id)));
@@ -82,23 +88,43 @@ public class AdminInventoryController {
 		return new IssueSlipResponse(
 				slip.getId(),
 				slip.getCode(),
-				slip.getOrder().getId(),
+				slip.getOrder() != null ? slip.getOrder().getId() : null,
 				slip.getStatus(),
 				slip.getDocumentUrl(),
 				slip.getCreatedAt(),
 				slip.getCompletedAt(),
-				slip.getOrder().getRecipientName(),
-				slip.getOrder().getRecipientPhone(),
-				slip.getOrder().getShippingAddress(),
-				slip.getOrder().getDeliveryType().name(),
-				slip.getOrder().getItems().stream()
-						.map(item -> new IssueSlipResponse.IssueSlipItemResponse(
-								item.getId(),
-								item.getProduct() != null ? item.getProduct().getId() : null,
-								item.getProduct() != null ? item.getProduct().getName() : "N/A",
-								item.getQuantity()
-						))
-						.collect(Collectors.toList())
+				slip.getOrder() != null ? slip.getOrder().getRecipientName() : getVietnameseExportReason(slip.getExportReason()),
+				slip.getOrder() != null ? slip.getOrder().getRecipientPhone() : "N/A",
+				slip.getOrder() != null ? slip.getOrder().getShippingAddress() : "N/A",
+				slip.getOrder() != null ? slip.getOrder().getDeliveryType().name() : "SHOWROOM_PICKUP",
+				slip.getExportReason() != null ? getVietnameseExportReason(slip.getExportReason()) : "Xuất hàng bán lẻ (Đơn hàng)",
+				slip.getOrder() != null
+						? slip.getOrder().getItems().stream()
+								.map(item -> new IssueSlipResponse.IssueSlipItemResponse(
+										item.getId(),
+										item.getProduct() != null ? item.getProduct().getId() : null,
+										item.getProduct() != null ? item.getProduct().getName() : "N/A",
+										item.getQuantity()
+								))
+								.collect(Collectors.toList())
+						: slip.getItems().stream()
+								.map(item -> new IssueSlipResponse.IssueSlipItemResponse(
+										item.getId(),
+										item.getProduct() != null ? item.getProduct().getId() : null,
+										item.getProduct() != null ? item.getProduct().getName() : "N/A",
+										item.getQuantity()
+								))
+								.collect(Collectors.toList())
 		);
+	}
+
+	private String getVietnameseExportReason(String reason) {
+		if (reason == null) return "Xuất hàng bán lẻ";
+		switch (reason) {
+			case "RETAIL_SALE": return "Xuất hàng bán lẻ";
+			case "PROVIDER_RETURN": return "Xuất trả hàng lỗi cho nhà cung cấp";
+			case "PC_ASSEMBLY": return "Xuất linh kiện để lắp ráp PC bộ";
+			default: return reason;
+		}
 	}
 }

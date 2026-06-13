@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.edu.pcmaster.dto.auth.AuthGoogleRequest;
 import com.edu.pcmaster.dto.auth.AuthLoginRequest;
 import com.edu.pcmaster.dto.auth.AuthRegisterRequest;
 import com.edu.pcmaster.dto.auth.AuthResponse;
@@ -30,5 +31,11 @@ public class AuthController {
 	public AuthResponse login(@Valid @RequestBody AuthLoginRequest request) {
 		return authService.login(request);
 	}
+
+	@PostMapping("/google")
+	public AuthResponse googleLogin(@Valid @RequestBody AuthGoogleRequest request) {
+		return authService.loginWithGoogle(request);
+	}
 }
+
 

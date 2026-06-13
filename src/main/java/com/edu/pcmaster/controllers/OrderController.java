@@ -56,7 +56,7 @@ public class OrderController {
 	// ── Admin endpoints ─────────────────────────────────────────────────────────
 
 	@GetMapping("/admin/all")
-	@PreAuthorize("hasRole('ADMIN')")
+	@PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
 	public List<OrderResponse> adminListAll() {
 		return orderService.findAll().stream()
 				.map(this::toResponse)
@@ -64,19 +64,19 @@ public class OrderController {
 	}
 
 	@GetMapping("/admin/{id}")
-	@PreAuthorize("hasRole('ADMIN')")
+	@PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
 	public OrderResponse adminDetail(@PathVariable Long id) {
 		return toResponse(orderService.getById(id));
 	}
 
 	@PutMapping("/admin/{id}/confirm")
-	@PreAuthorize("hasRole('ADMIN')")
+	@PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
 	public OrderResponse adminConfirm(@PathVariable Long id) {
 		return toResponse(orderService.confirm(id));
 	}
 
 	@PutMapping("/admin/{id}/status")
-	@PreAuthorize("hasRole('ADMIN')")
+	@PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
 	public ResponseEntity<OrderResponse> adminUpdateStatus(
 			@PathVariable Long id,
 			@RequestBody Map<String, String> body) {

@@ -14,5 +14,6 @@ public record RecommendedProductDto(
     BigDecimal discountPrice,    // null nếu không có khuyến mãi
     Integer discountPercent,     // null nếu không có khuyến mãi
     String thumbnailUrl,
-    Integer stock
+    Integer stock,
+    String categorySlug
 ) {}

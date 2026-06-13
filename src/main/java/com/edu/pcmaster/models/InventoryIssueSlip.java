@@ -28,8 +28,14 @@ public class InventoryIssueSlip {
 	private String code;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "order_id", nullable = false)
+	@JoinColumn(name = "order_id", nullable = true)
 	private Order order;
+
+	@Column(name = "export_reason", length = 100)
+	private String exportReason;
+
+	@jakarta.persistence.OneToMany(mappedBy = "slip", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
+	private java.util.List<InventoryIssueSlipItem> items = new java.util.ArrayList<>();
 
 	@Column(nullable = false, length = 20)
 	private String status = "PENDING"; // PENDING, COMPLETED

@@ -41,79 +41,73 @@ Update values in `src/main/resources/application-dev.properties`:
 - `socket`, `ram_type` (for CPU/Mainboard/RAM)
 - `tdp` (integer watt)
 
-## Run
+## Hướng dẫn chạy Backend (Spring Boot)
 
+### 1. Chuẩn bị Cơ sở dữ liệu (PostgreSQL với PGVector)
+Dự án sử dụng cơ sở dữ liệu PostgreSQL mở rộng thêm extension `vector` (PGVector) để phục vụ tính năng tìm kiếm ngữ nghĩa bằng AI.
+
+Bạn có thể chạy nhanh qua Docker:
+```bash
+docker run --name postgres -e POSTGRES_DB=pcmaster -e POSTGRES_PASSWORD=123456 -p 5432:5432 -d pgvector/pgvector:pg16
 ```
-# PowerShell
+
+### 2. Cấu hình ứng dụng
+Cấu hình kết nối DB và các thông số khác tại file [application-dev.properties](file:///c:/Users/tienc/Documents/DATN/PCMaster_Backend/src/main/resources/application-dev.properties):
+- `spring.datasource.url=jdbc:postgresql://localhost:5432/pcmaster`
+- `spring.datasource.username=postgres`
+- `spring.datasource.password=123456`
+
+### 3. Chạy ứng dụng
+Dùng Maven Wrapper đi kèm để khởi động server Spring Boot:
+```bash
+# Windows (cmd/PowerShell)
 ./mvnw spring-boot:run
 ```
 
-## Test
+---
 
+## Hướng dẫn khởi tạo và nhập dữ liệu (Database & Inventory)
+
+Tất cả các file dữ liệu SQL được lưu trữ tại thư mục [Database/](file:///c:/Users/tienc/Documents/DATN/PCMaster_Backend/Database).
+
+### 1. Khôi phục dữ liệu ban đầu (Database Restore)
+Để khôi phục toàn bộ cấu trúc bảng và dữ liệu mẫu hiện tại của dự án:
+Sử dụng công cụ PostgreSQL Client (DBeaver, pgAdmin) hoặc chạy lệnh dưới đây qua Docker:
+```bash
+docker exec -i postgres psql -U postgres -d pcmaster < Database/pcmaster_backup.sql
 ```
-# PowerShell
+
+### 2. Nhập dữ liệu tồn kho hàng loạt (Import Inventory)
+Dự án quản lý hàng tồn kho theo lô (FIFO). Bạn có thể chạy các script SQL để mô phỏng quá trình nhập hàng từ nhà phân phối:
+
+- **Nhập 40 đơn vị tồn kho cho tất cả sản phẩm từ nhà cung cấp 'AIO'**:
+  Chạy file [import_aio.sql](file:///c:/Users/tienc/Documents/DATN/PCMaster_Backend/Database/import_aio.sql) trong Database tool của bạn. Script này sẽ:
+  - Tự động kiểm tra hoặc tạo mới nhà phân phối tên 'AIO'.
+  - Tạo đơn nhập hàng (Purchase Order) với trạng thái `RECEIVED`.
+  - Tạo các lô hàng (Inventory Batches) tương ứng và cập nhật số lượng tồn kho của mỗi sản phẩm lên 40.
+
+- **Nhập 20 đơn vị tồn kho cho riêng các sản phẩm SSD từ nhà cung cấp 'AIO'**:
+  Chạy file [import_ssd_aio.sql](file:///c:/Users/tienc/Documents/DATN/PCMaster_Backend/Database/import_ssd_aio.sql) trong Database tool của bạn. Script này sẽ tạo lô nhập hàng bổ sung cho riêng nhóm linh kiện ổ cứng SSD.
+
+---
+
+## Test & Endpoints
+
+### Chạy Unit Test
+```bash
 ./mvnw test
 ```
 
-## Core endpoints
-
-- `POST /api/auth/register`
-- `POST /api/auth/login`
-- `GET /api/products`
-- `GET /api/products/{id}`
-- `GET /api/categories`
-- `GET /api/brands`
-- `POST /api/admin/products` (multipart: `data` JSON + optional `thumbnail` file)
-- `PUT /api/admin/products/{id}`
-- `DELETE /api/admin/products/{id}`
-- `GET /api/admin/categories`
-- `POST /api/admin/categories`
-- `PUT /api/admin/categories/{id}`
-- `DELETE /api/admin/categories/{id}`
-- `GET /api/admin/brands`
-- `POST /api/admin/brands`
-- `PUT /api/admin/brands/{id}`
-- `DELETE /api/admin/brands/{id}`
-- `GET /api/admin/suppliers`
-- `POST /api/admin/suppliers`
-- `POST /api/admin/purchase-orders`
-- `GET /api/admin/purchase-orders`
-- `GET /api/admin/purchase-orders/{id}`
-- `PUT /api/admin/purchase-orders/{id}/receive`
-- `POST /api/orders`
-- `GET /api/orders`
-- `GET /api/orders/{id}`
-- `GET /api/builds`
-- `POST /api/builds`
-- `GET /api/builds/{id}`
-- `POST /api/builds/{id}/items`
-- `PUT /api/builds/{id}/items/{itemId}`
-- `DELETE /api/builds/{id}/items/{itemId}`
-- `GET /api/builds/{id}/compatible-components?type=MAINBOARD`
-- `GET /api/bottleneck?cpuId=&gpuId=&res=`
-- `POST /api/chat`
-- `POST /api/admin/media/upload`
-
-## Sample image seeder
-
-Set these in `src/main/resources/application-dev.properties` (or env vars) to upload sample images to Cloudinary and seed DB:
-
-- `app.seed.sample-images.enabled=true`
-- `app.seed.sample-images.root=Sample_image`
-
-The seeder uploads:
-- `Sample_image/Product_Image/<Category>` -> `PCMAster_Storage/Product_thumbnails/<Category>`
-- `Sample_image/Brands_Logo/<Category>` -> `PCMAster_Storage/Brands_Logos/<Category>`
-
-Brand responses now include `logoUrl`.
-
-## Core seeder
-
-Enable with `app.seed.core.enabled=true` (enabled by default in `application-dev.properties`).
-
-Creates users:
-- `admin` / `Admin@123`
-- `customer` / `Customer@123`
-- `buyer` / `Buyer@123`
-
-Creates sample suppliers and assigns each supplier 5-10 random brands.
+### Các Endpoints chính
+- `POST /api/auth/register` - Đăng ký
+- `POST /api/auth/login` - Đăng nhập
+- `GET /api/products` - Tìm kiếm, hiển thị danh sách sản phẩm
+- `GET /api/products/{id}` - Chi tiết sản phẩm
+- `GET /api/categories` - Danh mục sản phẩm
+- `POST /api/admin/products` - Tạo mới sản phẩm (Admin)
+- `POST /api/admin/purchase-orders` - Tạo đơn nhập kho mới (Admin)
+- `PUT /api/admin/purchase-orders/{id}/receive` - Xác nhận nhận hàng và tạo lô hàng tồn kho (Admin)
+- `POST /api/orders` - Đặt mua hàng (Trừ kho FIFO tự động)
+- `GET /api/builds` - Lấy cấu hình máy tính
+- `POST /api/chat` - Chatbot tư vấn ngữ nghĩa (RAG)
+- `POST /api/admin/media/upload` - Upload ảnh lên Cloudinary

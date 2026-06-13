@@ -21,7 +21,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/admin/suppliers")
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
 public class SupplierController {
 	private final SupplierService supplierService;
 

@@ -145,29 +145,36 @@ public class EmbeddingIngestionService {
         if (product.getDescription() != null && !product.getDescription().isBlank()) {
             String desc = product.getDescription();
             // Giới hạn độ dài mô tả để không vượt quá context window
-            if (desc.length() > 600) desc = desc.substring(0, 600) + "...";
+            if (desc.length() > 2000) desc = desc.substring(0, 2000) + "...";
             content.append("Mô tả: ").append(desc).append("\n");
         }
 
+        // Xây dựng specs text rõ ràng từng dòng để AI dễ đọc
+        String specsTextStr = "";
         if (product.getSpecsJson() != null && !product.getSpecsJson().isNull()) {
             try {
-                // Chuyển JsonNode thành các cặp key=value để embedding rõ nghĩa hơn
                 JsonNode specs = product.getSpecsJson();
                 StringBuilder specsText = new StringBuilder();
-                specs.fields().forEachRemaining(entry ->
-                        specsText.append(entry.getKey()).append(": ")
-                                 .append(entry.getValue().asText()).append("; ")
-                );
+                specs.fields().forEachRemaining(entry -> {
+                    String key = entry.getKey();
+                    String value = entry.getValue().asText();
+                    // Bỏ qua các trường nội bộ hoặc quá dài
+                    if (!key.equals("component_type") && value.length() < 500) {
+                        specsText.append("  + ").append(key).append(": ").append(value).append("\n");
+                    }
+                });
                 if (!specsText.isEmpty()) {
-                    content.append("Thông số kỹ thuật: ").append(specsText).append("\n");
+                    specsTextStr = specsText.toString();
+                    content.append("Thông số kỹ thuật:\n").append(specsTextStr);
                 }
             } catch (Exception e) {
                 // Fallback: dùng toString() nếu không parse được
-                content.append("Thông số kỹ thuật: ").append(product.getSpecsJson()).append("\n");
+                specsTextStr = product.getSpecsJson().toString();
+                content.append("Thông số kỹ thuật: ").append(specsTextStr).append("\n");
             }
         }
 
-        // Metadata cấu trúc dùng để tái tạo RecommendedProductDto
+        // Metadata cấu trúc dùng để tái tạo RecommendedProductDto + hiển thị trong prompt
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("productId", product.getId());
         metadata.put("name", product.getName());
@@ -180,6 +187,13 @@ public class EmbeddingIngestionService {
         metadata.put("thumbnailUrl", product.getThumbnailUrl() != null ? product.getThumbnailUrl() : "");
         metadata.put("stock", product.getStock());
         metadata.put("categorySlug", category != null && category.getSlug() != null ? category.getSlug() : "");
+        metadata.put("brandName", brand != null ? brand.getName() : "");
+        // Lưu specs text vào metadata để RagChatService có thể hiển thị trong prompt
+        if (!specsTextStr.isEmpty()) {
+            // Giới hạn specs metadata để tránh vượt kích thước
+            String specsMeta = specsTextStr.length() > 1000 ? specsTextStr.substring(0, 1000) + "..." : specsTextStr;
+            metadata.put("specsText", specsMeta);
+        }
         metadata.put("source", "product"); // Tag để phân biệt nguồn dữ liệu
 
         return Document.builder()
@@ -205,5 +219,40 @@ public class EmbeddingIngestionService {
         return productRepository.findAll().stream()
                 .filter(p -> p.getStock() > 0)
                 .count();
+    }
+
+    /**
+     * Tự động index hoặc cập nhật một sản phẩm đơn lẻ.
+     * Nếu sản phẩm hết hàng (stock <= 0), xóa sản phẩm đó khỏi vector store.
+     */
+    public void indexProduct(Product product) {
+        if (product == null || product.getId() == null) return;
+        if (product.getStock() <= 0) {
+            deleteProduct(product);
+            return;
+        }
+
+        try {
+            Map<Long, Integer> discountsMap = productService.getActiveProductDiscountsMap();
+            Document doc = buildDocument(product, discountsMap);
+            vectorStore.add(List.of(doc));
+            System.out.printf("[RAG] Auto-indexed product ID: %d (%s)%n", product.getId(), product.getName());
+        } catch (Exception e) {
+            System.err.printf("[RAG] Failed to auto-index product ID %d: %s%n", product.getId(), e.getMessage());
+        }
+    }
+
+    /**
+     * Xóa sản phẩm khỏi vector store.
+     */
+    public void deleteProduct(Product product) {
+        if (product == null || product.getId() == null) return;
+        try {
+            String docId = toDocumentId(product.getId());
+            vectorStore.delete(List.of(docId));
+            System.out.printf("[RAG] Deleted index for product ID: %d%n", product.getId());
+        } catch (Exception e) {
+            System.err.printf("[RAG] Failed to delete index for product ID %d: %s%n", product.getId(), e.getMessage());
+        }
     }
 }

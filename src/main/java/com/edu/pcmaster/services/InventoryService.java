@@ -14,6 +14,7 @@ import com.edu.pcmaster.common.exception.BadRequestException;
 import com.edu.pcmaster.common.exception.ResourceNotFoundException;
 import com.edu.pcmaster.models.InventoryBatch;
 import com.edu.pcmaster.models.InventoryIssueSlip;
+import com.edu.pcmaster.models.InventoryIssueSlipItem;
 import com.edu.pcmaster.models.Order;
 import com.edu.pcmaster.models.OrderItem;
 import com.edu.pcmaster.models.OrderStatus;
@@ -148,7 +149,7 @@ public class InventoryService {
 		// Update order status to SHIPPED
 		order.setStatus(OrderStatus.SHIPPED);
 
-		// Generate export document DOCX and upload to Cloudinary
+		// Generate export document XLSX and upload to Cloudinary
 		try {
 			byte[] docBytes = orderDocumentService.generateExportDocument(order);
 			String docUrl = mediaService.uploadRaw(docBytes,
@@ -157,7 +158,7 @@ public class InventoryService {
 			order.setDocumentUrl(docUrl);
 			slip.setDocumentUrl(docUrl);
 		} catch (Exception e) {
-			System.err.println("[InventoryService] DOCX generation/upload failed for order " + order.getId() + ": " + e.getMessage());
+			System.err.println("[InventoryService] XLSX generation/upload failed for order " + order.getId() + ": " + e.getMessage());
 		}
 
 		orderRepository.save(order);
@@ -198,5 +199,54 @@ public class InventoryService {
 		productRepository.save(product);
 		
 		return totalCost;
+	}
+
+	@Transactional
+	public InventoryIssueSlip createManualIssueSlip(com.edu.pcmaster.dto.inventory.CreateManualIssueSlipRequest request) {
+		if ("RETAIL_SALE".equals(request.exportReason())) {
+			if (request.orderId() == null) {
+				throw new BadRequestException("Xuất hàng bán lẻ yêu cầu chọn đơn hàng liên kết");
+			}
+			InventoryIssueSlip pendingSlip = createIssueSlip(request.orderId());
+			pendingSlip.setExportReason("RETAIL_SALE");
+			inventoryIssueSlipRepository.save(pendingSlip);
+			return dispatchIssueSlip(pendingSlip.getId());
+		}
+
+		if (request.items() == null || request.items().isEmpty()) {
+			throw new BadRequestException("Phiếu xuất phải chứa ít nhất một sản phẩm");
+		}
+
+		// 1. Verify all products exist and check stock quantity
+		for (com.edu.pcmaster.dto.inventory.CreateManualIssueSlipRequest.ItemRequest itemReq : request.items()) {
+			Product product = productRepository.findById(itemReq.productId())
+					.orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + itemReq.productId()));
+			if (product.getStock() < itemReq.quantity()) {
+				throw new BadRequestException("Không đủ hàng trong kho cho sản phẩm: " + product.getName() + " (Tồn kho: " + product.getStock() + ")");
+			}
+		}
+
+		// 2. Create the slip
+		InventoryIssueSlip slip = new InventoryIssueSlip();
+		slip.setStatus("COMPLETED");
+		slip.setCompletedAt(Instant.now());
+		slip.setExportReason(request.exportReason());
+		// Generate code like PXK-M-TIMESTAMP
+		slip.setCode("PXK-M-" + Instant.now().toEpochMilli());
+
+		// 3. Deduct stock FIFO and add items to slip
+		for (com.edu.pcmaster.dto.inventory.CreateManualIssueSlipRequest.ItemRequest itemReq : request.items()) {
+			Product product = productRepository.findById(itemReq.productId()).get();
+			// Deduct FIFO
+			deductStockFIFO(product, itemReq.quantity());
+
+			InventoryIssueSlipItem item = new InventoryIssueSlipItem();
+			item.setSlip(slip);
+			item.setProduct(product);
+			item.setQuantity(itemReq.quantity());
+			slip.getItems().add(item);
+		}
+
+		return inventoryIssueSlipRepository.save(slip);
 	}
 }

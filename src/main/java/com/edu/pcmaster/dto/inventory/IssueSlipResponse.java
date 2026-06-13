@@ -15,6 +15,7 @@ public record IssueSlipResponse(
 		String recipientPhone,
 		String shippingAddress,
 		String deliveryType,
+		String exportReason,
 		List<IssueSlipItemResponse> items
 ) {
 	public record IssueSlipItemResponse(

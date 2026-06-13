@@ -60,7 +60,7 @@ public class Order {
 	@Column(name = "shipping_address", length = 500)
 	private String shippingAddress;
 
-	/** Cloudinary URL of the DOCX export document, set when order is confirmed */
+	/** Cloudinary URL of the XLSX export document, set when order is confirmed */
 	@Column(name = "document_url")
 	private String documentUrl;
 

@@ -24,7 +24,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/admin/purchase-orders")
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
 public class PurchaseOrderController {
 	private final PurchaseOrderService purchaseOrderService;
 	private final CurrentUserService currentUserService;

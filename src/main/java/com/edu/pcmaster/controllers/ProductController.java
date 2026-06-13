@@ -43,6 +43,12 @@ public class ProductController {
 		return toResponse(productService.getById(id), discountsMap);
 	}
 
+	@GetMapping("/slug/{slug}")
+	public ProductResponse detailBySlug(@PathVariable String slug) {
+		Map<Long, Integer> discountsMap = productService.getActiveProductDiscountsMap();
+		return toResponse(productService.getBySlugOrId(slug), discountsMap);
+	}
+
 	private ProductResponse toResponse(Product product, Map<Long, Integer> discountsMap) {
 		List<ProductResponse.PcComponentResponse> pcComponents = null;
 		if (product.getPcSystemDetail() != null && product.getPcSystemDetail().getComponents() != null) {

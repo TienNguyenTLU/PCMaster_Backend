@@ -37,7 +37,8 @@ public class ChatbotController {
         }
 
         List<ChatMessageDto> history = request.history() != null ? request.history() : List.of();
-        ChatResponse response = ragChatService.chat(request.message().trim(), history);
+        String mode = request.mode() != null ? request.mode() : "consult";
+        ChatResponse response = ragChatService.chat(request.message().trim(), history, mode);
         return ResponseEntity.ok(response);
     }
 }

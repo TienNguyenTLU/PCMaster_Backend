@@ -36,6 +36,15 @@ public class User {
 	@Column(nullable = false, length = 20)
 	private UserRole role = UserRole.CUSTOMER;
 
+	@Column(name = "phone", length = 30)
+	private String phone;
+
+	@Column(name = "address", length = 500)
+	private String address;
+
+	@Column(nullable = false, columnDefinition = "boolean default true")
+	private boolean active = true;
+
 	@Column(name = "created_at", nullable = false)
 	private Instant createdAt;
 
