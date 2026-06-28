@@ -14,15 +14,4 @@ public class PcmasterApplication {
 		SpringApplication.run(PcmasterApplication.class, args);
 	}
 
-	@Bean
-	public CommandLineRunner dropCheckConstraint(JdbcTemplate jdbcTemplate) {
-		return args -> {
-			try {
-				jdbcTemplate.execute("ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check");
-				System.out.println("PCMASTER MIGRATION: Successfully dropped users_role_check constraint.");
-			} catch (Exception e) {
-				System.err.println("PCMASTER MIGRATION: Failed to drop users_role_check constraint: " + e.getMessage());
-			}
-		};
-	}
 }

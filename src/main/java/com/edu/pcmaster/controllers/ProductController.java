@@ -51,8 +51,8 @@ public class ProductController {
 
 	private ProductResponse toResponse(Product product, Map<Long, Integer> discountsMap) {
 		List<ProductResponse.PcComponentResponse> pcComponents = null;
-		if (product.getPcSystemDetail() != null && product.getPcSystemDetail().getComponents() != null) {
-			pcComponents = product.getPcSystemDetail().getComponents().stream()
+		if (product.getPcComponents() != null && !product.getPcComponents().isEmpty()) {
+			pcComponents = product.getPcComponents().stream()
 					.map(comp -> {
 						Product componentProduct = comp.getComponentProduct();
 						Integer compDiscountPercent = discountsMap.get(componentProduct.getId());

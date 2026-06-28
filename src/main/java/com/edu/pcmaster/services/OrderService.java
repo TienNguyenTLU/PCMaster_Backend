@@ -16,6 +16,8 @@ import com.edu.pcmaster.models.InventoryBatch;
 import com.edu.pcmaster.models.Order;
 import com.edu.pcmaster.models.OrderItem;
 import com.edu.pcmaster.models.OrderStatus;
+import com.edu.pcmaster.models.PaymentMethod;
+import com.edu.pcmaster.models.PaymentStatus;
 import com.edu.pcmaster.models.Product;
 import com.edu.pcmaster.models.User;
 import com.edu.pcmaster.models.Coupon;
@@ -51,10 +53,10 @@ public class OrderService {
 		this.productService = productService;
 	}
 
-	// ── Customer queries ────────────────────────────────────────────────────────
+	
 
 	public List<Order> findByUser(User user) {
-		return orderRepository.findByUser(user);
+		return orderRepository.findByUserOrderByCreatedAtDesc(user);
 	}
 
 	public Order getById(Long id) {
@@ -70,13 +72,13 @@ public class OrderService {
 		return order;
 	}
 
-	// ── Admin queries ───────────────────────────────────────────────────────────
+	
 
 	public List<Order> findAll() {
 		return orderRepository.findAllByOrderByCreatedAtDesc();
 	}
 
-	// ── Create order — status DRAFT, no stock deduction yet ────────────────────
+	
 
 	@Transactional
 	public Order create(OrderRequest request, User user) {
@@ -100,11 +102,14 @@ public class OrderService {
 
 		Order order = new Order();
 		order.setUser(user);
-		order.setStatus(OrderStatus.DRAFT);
+		order.setStatus(OrderStatus.PENDING_APPROVAL);
 		order.setDeliveryType(request.deliveryType());
+		order.setAppointmentTime(request.appointmentTime());
 		order.setRecipientName(request.recipientName());
 		order.setRecipientPhone(request.recipientPhone());
 		order.setShippingAddress(request.shippingAddress());
+		order.setPaymentMethod(request.paymentMethod() != null ? request.paymentMethod() : PaymentMethod.COD);
+		order.setPaymentStatus(PaymentStatus.PENDING);
 
 		BigDecimal totalAmount = BigDecimal.ZERO;
 		java.util.Map<Long, Integer> discountsMap = productService.getActiveProductDiscountsMap();
@@ -171,71 +176,45 @@ public class OrderService {
 		return orderRepository.save(order);
 	}
 
-	// ── Admin: confirm order — deduct stock, generate + upload DOCX ────────────
+	
 
 	@Transactional
 	public Order confirm(Long id) {
 		Order order = getById(id);
-		if (order.getStatus() != OrderStatus.DRAFT) {
-			throw new BadRequestException("Only DRAFT orders can be confirmed");
+		if (order.getStatus() != OrderStatus.PENDING_APPROVAL) {
+			throw new BadRequestException("Only PENDING_APPROVAL orders can be confirmed");
 		}
 
-		for (OrderItem orderItem : order.getItems()) {
-			Product product = orderItem.getProduct();
-			int quantityToDeduct = orderItem.getQuantity();
-
-			if (product.getStock() < quantityToDeduct) {
-				throw new BadRequestException("Không đủ hàng trong kho cho sản phẩm: " + product.getName());
-			}
-
-			// FIFO: Find oldest batches with remaining stock
-			List<InventoryBatch> batches = inventoryBatchRepository.findByProductAndRemainingQuantityGreaterThanOrderByImportedAtAsc(product, 0);
-
-			BigDecimal weightedAverageCost = BigDecimal.ZERO;
-			int totalQuantityFromBatches = 0;
-
-			for (InventoryBatch batch : batches) {
-				int quantityFromThisBatch = Math.min(quantityToDeduct, batch.getRemainingQuantity());
-				
-				weightedAverageCost = weightedAverageCost.add(batch.getImportPrice().multiply(BigDecimal.valueOf(quantityFromThisBatch)));
-				totalQuantityFromBatches += quantityFromThisBatch;
-
-				batch.setRemainingQuantity(batch.getRemainingQuantity() - quantityFromThisBatch);
-				inventoryBatchRepository.save(batch);
-
-				quantityToDeduct -= quantityFromThisBatch;
-				if (quantityToDeduct == 0) {
-					break;
-				}
-			}
-
-			if (quantityToDeduct > 0) {
-				throw new BadRequestException("Lỗi logic: Không đủ số lượng trong các lô hàng tồn kho cho sản phẩm: " + product.getName());
-			}
-			
-			BigDecimal averageCost = weightedAverageCost.divide(BigDecimal.valueOf(totalQuantityFromBatches), 2, RoundingMode.HALF_UP);
-			orderItem.setCostPrice(averageCost);
-
-			// Update product's total stock
-			product.setStock(product.getStock() - orderItem.getQuantity());
-			productRepository.save(product);
+		if (order.getPaymentMethod() != PaymentMethod.COD && order.getPaymentStatus() != PaymentStatus.PAID) {
+			throw new BadRequestException("Chỉ có thể duyệt đơn hàng thanh toán online khi trạng thái thanh toán là đã hoàn thành.");
 		}
 
 		order.setStatus(OrderStatus.CONFIRMED);
 		return orderRepository.save(order);
 	}
 
+	@Transactional
+	public Order reject(Long id, String reason) {
+		Order order = getById(id);
+		if (order.getStatus() != OrderStatus.PENDING_APPROVAL) {
+			throw new BadRequestException("Only PENDING_APPROVAL orders can be rejected");
+		}
+		order.setStatus(OrderStatus.REJECTED);
+		order.setRejectReason(reason);
+		return orderRepository.save(order);
+	}
 
-	// ── Admin: update status (CONFIRMED → SHIPPED → DELIVERED) ─────────────────
+	
 
 	@Transactional
 	public Order updateStatus(Long id, OrderStatus newStatus) {
 		Order order = getById(id);
 		OrderStatus current = order.getStatus();
 
-		// Allowed transitions
+		
 		boolean valid = switch (current) {
 			case DRAFT -> newStatus == OrderStatus.CANCELLED;
+			case PENDING_APPROVAL -> newStatus == OrderStatus.CONFIRMED || newStatus == OrderStatus.REJECTED || newStatus == OrderStatus.CANCELLED;
 			case CONFIRMED -> newStatus == OrderStatus.SHIPPED || newStatus == OrderStatus.CANCELLED;
 			case SHIPPED -> newStatus == OrderStatus.DELIVERED;
 			default -> false;
@@ -246,6 +225,11 @@ public class OrderService {
 		}
 
 		order.setStatus(newStatus);
+		return orderRepository.save(order);
+	}
+
+	@Transactional
+	public Order save(Order order) {
 		return orderRepository.save(order);
 	}
 }

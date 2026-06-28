@@ -15,9 +15,9 @@ public class PcSystemComponent {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "pc_system_detail_id", nullable = false)
+    @JoinColumn(name = "product_id", nullable = false)
     @com.fasterxml.jackson.annotation.JsonIgnore
-    private PcSystemDetail pcSystemDetail;
+    private Product product;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "component_product_id", nullable = false)

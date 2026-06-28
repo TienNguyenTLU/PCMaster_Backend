@@ -9,7 +9,7 @@ import jakarta.validation.constraints.Positive;
 
 public record CouponRequest(
 		@NotBlank String code,
-		@NotBlank String discountType, // "PERCENTAGE" or "FIXED_AMOUNT"
+		@NotBlank String discountType, 
 		@NotNull @Positive BigDecimal discountValue,
 		BigDecimal minOrderAmount,
 		BigDecimal maxDiscountAmount,

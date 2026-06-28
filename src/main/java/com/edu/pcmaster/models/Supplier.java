@@ -42,6 +42,8 @@ public class Supplier {
 	@ManyToMany
 	@JoinTable(name = "supplier_brands",
 			joinColumns = @JoinColumn(name = "supplier_id"),
-			inverseJoinColumns = @JoinColumn(name = "brand_id"))
+			inverseJoinColumns = @JoinColumn(name = "brand_id"),
+			foreignKey = @jakarta.persistence.ForeignKey(foreignKeyDefinition = "FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE CASCADE"),
+			inverseForeignKey = @jakarta.persistence.ForeignKey(foreignKeyDefinition = "FOREIGN KEY (brand_id) REFERENCES brands(id) ON DELETE CASCADE"))
 	private Set<Brand> brands = new HashSet<>();
 }

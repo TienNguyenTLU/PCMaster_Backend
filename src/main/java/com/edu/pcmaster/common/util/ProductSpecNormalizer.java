@@ -12,7 +12,7 @@ public class ProductSpecNormalizer {
 	private static final Map<String, String> LABEL_TRANSLATIONS = new HashMap<>();
 
 	static {
-		// General translations
+		
 		LABEL_TRANSLATIONS.put("thương hiệu", "brand");
 		LABEL_TRANSLATIONS.put("bảo hành", "warranty");
 		LABEL_TRANSLATIONS.put("dông sản phẩm", "product_series");
@@ -74,7 +74,7 @@ public class ProductSpecNormalizer {
 		LABEL_TRANSLATIONS.put("trọng lượng", "weight");
 		LABEL_TRANSLATIONS.put("cân nặng", "weight");
 
-		// Case mappings
+		
 		LABEL_TRANSLATIONS.put("bo mạch hỗ trợ", "supported_mainboards");
 		LABEL_TRANSLATIONS.put("hỗ trợ main", "supported_mainboards");
 		LABEL_TRANSLATIONS.put("h_tr_main", "supported_mainboards");
@@ -137,7 +137,7 @@ public class ProductSpecNormalizer {
 		LABEL_TRANSLATIONS.put("cổng audio", "audio_ports");
 		LABEL_TRANSLATIONS.put("cổng âm thanh", "audio_ports");
 
-		// PSU translations
+		
 		LABEL_TRANSLATIONS.put("chu_n_ch_ng_nh_n", "efficiency_rating");
 		LABEL_TRANSLATIONS.put("chuẩn chứng nhận", "efficiency_rating");
 		LABEL_TRANSLATIONS.put("hi_u_su_t", "efficiency_rating");
@@ -151,7 +151,7 @@ public class ProductSpecNormalizer {
 		LABEL_TRANSLATIONS.put("c_ng_su_t_t_i_a", "wattage");
 		LABEL_TRANSLATIONS.put("công suất tối đa", "wattage");
 
-		// CPU translations
+		
 		LABEL_TRANSLATIONS.put("dòng cpu", "series");
 		LABEL_TRANSLATIONS.put("d_ng_cpu", "series");
 		LABEL_TRANSLATIONS.put("thế hệ cpu", "generation");
@@ -189,7 +189,7 @@ public class ProductSpecNormalizer {
 		LABEL_TRANSLATIONS.put("tình trạng", "condition");
 		LABEL_TRANSLATIONS.put("t_nh_tr_ng", "condition");
 
-		// P-core and E-core
+		
 		LABEL_TRANSLATIONS.put("số nhân p-core", "p_cores");
 		LABEL_TRANSLATIONS.put("s_nh_n_p_core", "p_cores");
 		LABEL_TRANSLATIONS.put("số nhân e-core", "e_cores");
@@ -201,7 +201,7 @@ public class ProductSpecNormalizer {
 		LABEL_TRANSLATIONS.put("tdp max (điện năng tiêu thụ tối đa)", "tdp_w");
 		LABEL_TRANSLATIONS.put("tdp_max_i_n_n_ng_ti_u_th_t_i_a", "tdp_w");
 
-		// Mainboard translations
+		
 		LABEL_TRANSLATIONS.put("ki_u_ram_h_tr", "ram_type");
 		LABEL_TRANSLATIONS.put("k_ch_th_c", "form_factor");
 		LABEL_TRANSLATIONS.put("s_khe_m_2", "m2_slots");
@@ -210,16 +210,16 @@ public class ProductSpecNormalizer {
 		LABEL_TRANSLATIONS.put("wi_fi", "has_wifi");
 		LABEL_TRANSLATIONS.put("wifi", "has_wifi");
 
-		// RAM mappings
+		
 		LABEL_TRANSLATIONS.put("kit_ram", "kit");
 		LABEL_TRANSLATIONS.put("h_tr_ram", "kit");
 		LABEL_TRANSLATIONS.put("t_c_quay_c_a_fan", "fan_speed");
 		
-		// GPU mappings
+		
 		LABEL_TRANSLATIONS.put("vram_gb", "vram");
 		LABEL_TRANSLATIONS.put("vram", "vram");
 		
-		// Cooler mappings
+		
 		LABEL_TRANSLATIONS.put("lo_i_s_n_ph_m", "cooler_type");
 		LABEL_TRANSLATIONS.put("loại sản phẩm", "cooler_type");
 		LABEL_TRANSLATIONS.put("tản nhiệt khí", "cooler_type");
@@ -268,7 +268,7 @@ public class ProductSpecNormalizer {
 		LABEL_TRANSLATIONS.put("chiều dài ống dẫn", "tube_length");
 		LABEL_TRANSLATIONS.put("độ dài ống", "tube_length");
 
-		// Storage mappings
+		
 		LABEL_TRANSLATIONS.put("ssd_type", "ssd_type");
 		LABEL_TRANSLATIONS.put("loại ssd", "ssd_type");
 		LABEL_TRANSLATIONS.put("lo_i_ssd", "ssd_type");
@@ -298,7 +298,7 @@ public class ProductSpecNormalizer {
 		LABEL_TRANSLATIONS.put("b_nh_m", "cache");
 		LABEL_TRANSLATIONS.put("cache", "cache");
 
-		// Fan mappings
+		
 		LABEL_TRANSLATIONS.put("lo_i_k_t_n_i", "connection_type");
 		LABEL_TRANSLATIONS.put("loại kết nối", "connection_type");
 		LABEL_TRANSLATIONS.put("chuẩn kết nối", "connection_type");
@@ -330,7 +330,7 @@ public class ProductSpecNormalizer {
 		LABEL_TRANSLATIONS.put("kích thước quạt (mm)", "size_mm");
 		LABEL_TRANSLATIONS.put("kích thước quạt", "size_mm");
 
-		// Laptop mappings
+		
 		LABEL_TRANSLATIONS.put("cpu", "cpu");
 		LABEL_TRANSLATIONS.put("ram", "ram");
 		LABEL_TRANSLATIONS.put("s_khe_ram", "ram_slots");
@@ -393,7 +393,7 @@ public class ProductSpecNormalizer {
 		if (key == null) return "";
 		String keyLower = key.toLowerCase().trim();
 
-		// Custom translation mapping for PSU to map "form factor" to "dimensions"
+		
 		if ("PSU".equalsIgnoreCase(componentType)) {
 			String snake = toSnakeCase(keyLower);
 			if (snake.equals("form_factor") || snake.equals("form_factor_psu")) {
@@ -401,7 +401,7 @@ public class ProductSpecNormalizer {
 			}
 		}
 
-		// Custom translation mapping for FAN to map size keys to "size_mm"
+		
 		if ("FAN".equalsIgnoreCase(componentType)) {
 			String snake = toSnakeCase(keyLower);
 			if (snake.equals("fan_size_mm") || snake.equals("k_ch_th_c_qu_t_t_n") || snake.equals("k_ch_th_c_qu_t") || snake.equals("kich_thuoc_quat") || snake.equals("kich_thuoc_quat_mm") || snake.equals("k_ch_th_c_qu_t_mm") || keyLower.contains("kích thước quạt")) {
@@ -414,7 +414,7 @@ public class ProductSpecNormalizer {
 			return translation;
 		}
 
-		// Fallback to snake_case key lookup to handle NFD/NFC encoding mismatches
+		
 		String snakeKey = toSnakeCase(key);
 		translation = LABEL_TRANSLATIONS.get(snakeKey);
 		if (translation != null) {
@@ -428,7 +428,7 @@ public class ProductSpecNormalizer {
 		String valTrimmed = cleanString(val);
 		String valLower = valTrimmed.toLowerCase();
 
-		// Normalize boolean values
+		
 		if (valLower.equals("có") || valLower.equals("yes") || valLower.equals("true")) {
 			return "true";
 		}
@@ -436,7 +436,7 @@ public class ProductSpecNormalizer {
 			return "false";
 		}
 
-		// Broad check for known boolean keys to resolve values starting with "Có"/"Không"
+		
 		if (key.startsWith("has_") || key.startsWith("is_") || key.contains("wifi") || key.contains("rgb") || key.equals("water_cooled") || key.equals("tempered_glass_side") || key.equals("touchscreen") || key.equals("has_numpad")) {
 			if (valLower.startsWith("không") || valLower.equals("no") || valLower.equals("false") || valLower.isEmpty()) {
 				return "false";
@@ -446,7 +446,7 @@ public class ProductSpecNormalizer {
 			}
 		}
 
-		// WiFi detection for has_wifi
+		
 		if (key.equals("has_wifi")) {
 			if (valLower.equals("không") || valLower.equals("no") || valLower.equals("false") || valLower.isEmpty()) {
 				return "false";
@@ -454,10 +454,10 @@ public class ProductSpecNormalizer {
 			return "true";
 		}
 
-		// Clean up duplicate units or suffixes (e.g. MB MB, KB KB, GB GB)
+		
 		valTrimmed = valTrimmed.replaceAll("(?i)\\b(mb|kb|gb)\\b\\s+\\b\\1\\b", "$1");
 
-		// Clean numeric suffixes for specific fields to match type constraints
+		
 		if (key.equals("cores") || key.equals("threads") || key.equals("p_cores") || key.equals("e_cores")
 				|| key.contains("slots") || key.contains("sata") || key.contains("usb") || key.contains("ports")
 				|| key.contains("cores") || key.contains("fan") || key.contains("count")) {
@@ -514,7 +514,7 @@ public class ProductSpecNormalizer {
 		List<String> keys = new ArrayList<>();
 		objectNode.fieldNames().forEachRemaining(keys::add);
 
-		// 1. Rename keys using the central map
+		
 		for (String key : keys) {
 			String standardKey = translateKey(key, componentType);
 			if (standardKey != null && !standardKey.isEmpty()) {
@@ -528,8 +528,8 @@ public class ProductSpecNormalizer {
 			}
 		}
 
-		// 2. Perform value type / format normalization based on the standardized key and component type
-		// PSU
+		
+		
 		if ("PSU".equalsIgnoreCase(componentType)) {
 			if (objectNode.has("wattage")) {
 				JsonNode wattageNode = objectNode.get("wattage");
@@ -565,7 +565,7 @@ public class ProductSpecNormalizer {
 				}
 			}
 		}
-		// RAM
+		
 		else if ("RAM".equalsIgnoreCase(componentType)) {
 			if (objectNode.has("capacity_gb")) {
 				JsonNode capNode = objectNode.get("capacity_gb");
@@ -618,7 +618,7 @@ public class ProductSpecNormalizer {
 				}
 			}
 		}
-		// GPU
+		
 		else if ("GPU".equalsIgnoreCase(componentType)) {
 			if (objectNode.has("vram")) {
 				JsonNode vramNode = objectNode.get("vram");
@@ -676,7 +676,7 @@ public class ProductSpecNormalizer {
 				}
 			}
 		}
-		// CPU
+		
 		else if ("CPU".equalsIgnoreCase(componentType)) {
 			if (objectNode.has("cores")) {
 				JsonNode coresNode = objectNode.get("cores");
@@ -718,7 +718,7 @@ public class ProductSpecNormalizer {
 				}
 			}
 		}
-		// STORAGE
+		
 		else if ("STORAGE".equalsIgnoreCase(componentType)) {
 			if (objectNode.has("capacity_gb")) {
 				JsonNode capNode = objectNode.get("capacity_gb");
@@ -791,7 +791,7 @@ public class ProductSpecNormalizer {
 				}
 			}
 		}
-		// MAINBOARD
+		
 		else if ("MAINBOARD".equalsIgnoreCase(componentType)) {
 			if (objectNode.has("max_ram_gb")) {
 				JsonNode mrNode = objectNode.get("max_ram_gb");
@@ -839,7 +839,7 @@ public class ProductSpecNormalizer {
 				}
 			}
 		}
-		// CASE
+		
 		else if ("CASE".equalsIgnoreCase(componentType)) {
 			if (objectNode.has("fan_count_included")) {
 				JsonNode valNode = objectNode.get("fan_count_included");
@@ -943,7 +943,7 @@ public class ProductSpecNormalizer {
 				objectNode.set("supported_mainboards", arrayNode);
 			}
 		}
-		// COOLER
+		
 		else if ("COOLER".equalsIgnoreCase(componentType)) {
 			if (objectNode.has("fan_count")) {
 				JsonNode valNode = objectNode.get("fan_count");
@@ -963,16 +963,16 @@ public class ProductSpecNormalizer {
 					} catch (NumberFormatException ignored) {}
 				}
 			}
-			// fan_speed_rpm: keep as text (e.g. "650-1750 RPM ± 10%") - just strip unit suffix
+			
 			if (objectNode.has("fan_speed_rpm")) {
 				JsonNode valNode = objectNode.get("fan_speed_rpm");
 				if (valNode.isTextual()) {
-					// Remove trailing " RPM" or " rpm" suffixes but keep range info
+					
 					String cleanVal = valNode.asText().replaceAll("(?i)\\s*RPM\\s*$", "").trim();
 					objectNode.put("fan_speed_rpm", cleanVal);
 				}
 			}
-			// pump_noise_db: keep as text (e.g. "27.2 dBA (Max)") - strip double unit
+			
 			if (objectNode.has("pump_noise_db")) {
 				JsonNode valNode = objectNode.get("pump_noise_db");
 				if (valNode.isTextual()) {
@@ -980,7 +980,7 @@ public class ProductSpecNormalizer {
 					objectNode.put("pump_noise_db", cleanVal);
 				}
 			}
-			// cpu_socket_support: space-delimited string → JSON array
+			
 			if (objectNode.has("cpu_socket_support") && objectNode.get("cpu_socket_support").isTextual()) {
 				String text = objectNode.get("cpu_socket_support").asText();
 				String[] parts = text.trim().split("[\\s,]+");
@@ -993,7 +993,7 @@ public class ProductSpecNormalizer {
 				objectNode.set("cpu_socket_support", arrayNode);
 			}
 		}
-		// FAN
+		
 		else if ("FAN".equalsIgnoreCase(componentType)) {
 			if (objectNode.has("size_mm")) {
 				JsonNode valNode = objectNode.get("size_mm");
@@ -1071,7 +1071,7 @@ public class ProductSpecNormalizer {
 				}
 			}
 		}
-		// LAPTOP
+		
 		else if ("LAPTOP".equalsIgnoreCase(componentType)) {
 			if (objectNode.has("ram_slots")) {
 				JsonNode valNode = objectNode.get("ram_slots");
@@ -1144,7 +1144,7 @@ public class ProductSpecNormalizer {
 			}
 		}
 
-		// General normalization for brightness_cdm2 (Monitor or Laptop)
+		
 		if (objectNode.has("brightness_cdm2")) {
 			JsonNode valNode = objectNode.get("brightness_cdm2");
 			if (valNode.isTextual()) {
@@ -1161,7 +1161,7 @@ public class ProductSpecNormalizer {
 			}
 		}
 
-		// General Fallback for Booleans in any properties
+		
 		for (String standardKey : keys) {
 			if (objectNode.has(standardKey)) {
 				JsonNode nodeVal = objectNode.get(standardKey);

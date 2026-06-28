@@ -16,8 +16,9 @@ import com.edu.pcmaster.dto.product.ProductRequest;
 import com.edu.pcmaster.models.Brand;
 import com.edu.pcmaster.models.Category;
 import com.edu.pcmaster.models.PcSystemComponent;
-import com.edu.pcmaster.models.PcSystemDetail;
 import com.edu.pcmaster.models.Product;
+import com.edu.pcmaster.models.ProductImage;
+import org.springframework.transaction.annotation.Transactional;
 import com.edu.pcmaster.models.InventoryBatch;
 import com.edu.pcmaster.repositories.BrandRepository;
 import com.edu.pcmaster.repositories.CategoryRepository;
@@ -99,7 +100,7 @@ public class ProductService {
 		product.setDescription(request.description());
 		product.setSpecsJson(parseSpecsJson(request.specsJson()));
 
-		// Handle PC System components
+		
 		if ("PC_SYSTEM".equalsIgnoreCase(category.getSlug().replace("-", "_"))) {
 			int pcStock = request.stock() != null ? request.stock() : 0;
 			if (request.pcComponents() == null || request.pcComponents().isEmpty()) {
@@ -107,7 +108,7 @@ public class ProductService {
 					throw new BadRequestException("Cấu hình PC lắp sẵn cần ít nhất 1 linh kiện để lắp ráp.");
 				}
 			} else {
-				// Validate component stocks first
+				
 				if (pcStock > 0) {
 					for (ProductRequest.PcComponentRequest compReq : request.pcComponents()) {
 						Product componentProduct = productRepository.findById(compReq.componentProductId())
@@ -120,7 +121,7 @@ public class ProductService {
 					}
 				}
 
-				// Deduct stock and calculate total component cost
+				
 				BigDecimal totalComponentCost = BigDecimal.ZERO;
 				if (pcStock > 0) {
 					for (ProductRequest.PcComponentRequest compReq : request.pcComponents()) {
@@ -132,28 +133,22 @@ public class ProductService {
 					}
 				}
 
-				PcSystemDetail pcSystemDetail = new PcSystemDetail();
-				pcSystemDetail.setProduct(product);
-				List<PcSystemComponent> components = new ArrayList<>();
+					for (ProductRequest.PcComponentRequest compReq : request.pcComponents()) {
+						Product componentProduct = productRepository.findById(compReq.componentProductId())
+								.orElseThrow(() -> new ResourceNotFoundException("Component product not found: " + compReq.componentProductId()));
+						
+						PcSystemComponent component = new PcSystemComponent();
+						component.setProduct(product);
+						component.setComponentProduct(componentProduct);
+						component.setQuantity(compReq.quantity());
+						product.getPcComponents().add(component);
+					}
+					product.setStock(pcStock);
 
-				for (ProductRequest.PcComponentRequest compReq : request.pcComponents()) {
-					Product componentProduct = productRepository.findById(compReq.componentProductId())
-							.orElseThrow(() -> new ResourceNotFoundException("Component product not found: " + compReq.componentProductId()));
-					
-					PcSystemComponent component = new PcSystemComponent();
-					component.setPcSystemDetail(pcSystemDetail);
-					component.setComponentProduct(componentProduct);
-					component.setQuantity(compReq.quantity());
-					components.add(component);
-				}
-				pcSystemDetail.setComponents(components);
-				product.setPcSystemDetail(pcSystemDetail);
-				product.setStock(pcStock);
-
-				// Save product to get ID
+				
 				product = productRepository.save(product);
 
-				// Create inventory batch for the pre-built PC
+				
 				if (pcStock > 0) {
 					InventoryBatch batch = new InventoryBatch();
 					batch.setProduct(product);
@@ -184,7 +179,7 @@ public class ProductService {
 		product.setSlug(request.slug());
 		product.setPrice(request.price());
 		
-		// If thumbnail changed, delete old one from Cloudinary
+		
 		String oldThumbnailUrl = product.getThumbnailUrl();
 		String newThumbnailUrl = request.thumbnailUrl();
 		if (oldThumbnailUrl != null && !oldThumbnailUrl.equals(newThumbnailUrl) && oldThumbnailUrl.contains("cloudinary.com")) {
@@ -200,36 +195,24 @@ public class ProductService {
 		product.setDescription(request.description());
 		product.setSpecsJson(parseSpecsJson(request.specsJson()));
 
-		// Handle PC System components update
+		
 		if ("PC_SYSTEM".equalsIgnoreCase(category.getSlug().replace("-", "_"))) {
 			if (request.pcComponents() != null) {
-				PcSystemDetail pcSystemDetail = product.getPcSystemDetail();
-				if (pcSystemDetail == null) {
-					pcSystemDetail = new PcSystemDetail();
-					pcSystemDetail.setProduct(product);
-					product.setPcSystemDetail(pcSystemDetail);
-				}
-
-				// Clear existing components
-				pcSystemDetail.getComponents().clear();
+				product.getPcComponents().clear();
 
 				for (ProductRequest.PcComponentRequest compReq : request.pcComponents()) {
 					Product componentProduct = productRepository.findById(compReq.componentProductId())
 							.orElseThrow(() -> new ResourceNotFoundException("Component product not found: " + compReq.componentProductId()));
 					
 					PcSystemComponent component = new PcSystemComponent();
-					component.setPcSystemDetail(pcSystemDetail);
+					component.setProduct(product);
 					component.setComponentProduct(componentProduct);
 					component.setQuantity(compReq.quantity());
-					pcSystemDetail.getComponents().add(component);
+					product.getPcComponents().add(component);
 				}
 			}
 		} else {
-			// If category changed from PC_SYSTEM to something else, remove details
-			if (product.getPcSystemDetail() != null) {
-				product.getPcSystemDetail().getComponents().clear();
-				product.setPcSystemDetail(null);
-			}
+			product.getPcComponents().clear();
 		}
 
 		return productRepository.save(product);
@@ -272,6 +255,7 @@ public class ProductService {
 		return originalPrice.subtract(discount);
 	}
 
+	@Transactional
 	public void delete(Long id) {
 		Product product = getById(id);
 		String thumbnailUrl = product.getThumbnailUrl();
@@ -283,6 +267,22 @@ public class ProductService {
 				System.err.println("Failed to delete product thumbnail from Cloudinary: " + e.getMessage());
 			}
 		}
+		
+		// Xóa các hình ảnh phụ liên quan trên Cloudinary
+		if (product.getImages() != null) {
+			for (ProductImage img : product.getImages()) {
+				String imgUrl = img.getUrl();
+				if (imgUrl != null && imgUrl.contains("cloudinary.com")) {
+					try {
+						String publicId = extractPublicIdFromUrl(imgUrl);
+						mediaService.delete(publicId);
+					} catch (Exception e) {
+						System.err.println("Failed to delete product image from Cloudinary: " + e.getMessage());
+					}
+				}
+			}
+		}
+		
 		productRepository.delete(product);
 	}
 
@@ -291,15 +291,49 @@ public class ProductService {
 		if (uploadIndex == -1) {
 			throw new IllegalArgumentException("Invalid Cloudinary URL");
 		}
-		int versionIndex = url.indexOf("/v", uploadIndex + 8);
-		if (versionIndex == -1) {
-			throw new IllegalArgumentException("Invalid Cloudinary URL: Missing version");
+		
+		String path = url.substring(uploadIndex + 8);
+		int lastDot = path.lastIndexOf('.');
+		if (lastDot != -1) {
+			path = path.substring(0, lastDot);
 		}
-		int startIndex = url.indexOf('/', versionIndex + 1) + 1;
-		int endIndex = url.lastIndexOf('.');
-		if (startIndex == -1 || endIndex == -1 || startIndex >= endIndex) {
+		
+		String[] segments = path.split("/");
+		StringBuilder publicIdBuilder = new StringBuilder();
+		boolean foundPublicIdStart = false;
+		
+		for (String segment : segments) {
+			if (segment.isEmpty()) {
+				continue;
+			}
+			if (!foundPublicIdStart) {
+				if (segment.matches("v\\d+")) {
+					foundPublicIdStart = true;
+					continue;
+				}
+				if (isTransformation(segment)) {
+					continue;
+				}
+				foundPublicIdStart = true;
+			}
+			
+			if (foundPublicIdStart) {
+				if (publicIdBuilder.length() > 0) {
+					publicIdBuilder.append("/");
+				}
+				publicIdBuilder.append(segment);
+			}
+		}
+		
+		if (publicIdBuilder.length() == 0) {
 			throw new IllegalArgumentException("Invalid Cloudinary URL: Cannot extract public ID");
 		}
-		return url.substring(startIndex, endIndex);
+		
+		return publicIdBuilder.toString();
+	}
+
+	private boolean isTransformation(String segment) {
+		String regex = "^(?:(c|dpr|e|f|fl|g|h|l|p|q|r|t|u|w|x|y|z|ac|br|co|dl|dn|du|eo|fps|ki|so|vc|vs|b|o|a|d|cs)_[a-zA-Z0-9-._]+)(?:,(?:(c|dpr|e|f|fl|g|h|l|p|q|r|t|u|w|x|y|z|ac|br|co|dl|dn|du|eo|fps|ki|so|vc|vs|b|o|a|d|cs)_[a-zA-Z0-9-._]+))*$";
+		return segment.matches(regex);
 	}
 }

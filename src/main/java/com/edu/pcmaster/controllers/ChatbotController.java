@@ -12,11 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-/**
- * Controller tiếp nhận tin nhắn chat từ Frontend.
- * Endpoint công khai, không yêu cầu xác thực JWT.
- * POST /api/chat → RAG pipeline → ChatResponse
- */
+
 @RestController
 @RequestMapping("/api/chat")
 public class ChatbotController {
@@ -27,9 +23,7 @@ public class ChatbotController {
         this.ragChatService = ragChatService;
     }
 
-    /**
-     * Nhận tin nhắn từ người dùng và trả về câu trả lời AI kèm sản phẩm đề xuất.
-     */
+    
     @PostMapping
     public ResponseEntity<ChatResponse> chat(@RequestBody ChatRequest request) {
         if (request.message() == null || request.message().isBlank()) {

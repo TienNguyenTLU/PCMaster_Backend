@@ -27,6 +27,7 @@ public class ProductImage {
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "product_id", nullable = false)
 	@com.fasterxml.jackson.annotation.JsonIgnore
+	@org.hibernate.annotations.OnDelete(action = org.hibernate.annotations.OnDeleteAction.CASCADE)
 	private Product product;
 
 	@Column(nullable = false, length = 1024)

@@ -78,7 +78,7 @@ public class AuthService {
 
 		User user = userRepository.findByEmail(tokenInfo.email)
 				.orElseGet(() -> {
-					// Auto-generate username from email prefix
+					
 					String baseUsername = tokenInfo.email.split("@")[0];
 					String username = baseUsername;
 					int suffix = 1;

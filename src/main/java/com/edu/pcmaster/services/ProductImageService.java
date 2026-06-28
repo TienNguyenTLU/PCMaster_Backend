@@ -43,13 +43,13 @@ public class ProductImageService {
         ProductImage productImage = productImageRepository.findById(imageId)
                 .orElseThrow(() -> new RuntimeException("Image not found"));
         
-        // Extract public ID from URL to delete from Cloudinary
+        
         String url = productImage.getUrl();
         try {
             String publicId = extractPublicIdFromUrl(url);
             mediaService.delete(publicId);
         } catch (Exception e) {
-            // Log the error but proceed with deleting from the database
+            
             System.err.println("Failed to delete image from Cloudinary: " + e.getMessage());
         }
 
@@ -57,26 +57,53 @@ public class ProductImageService {
     }
 
     private String extractPublicIdFromUrl(String url) {
-        // Example URL: http://res.cloudinary.com/demo/image/upload/v1572285634/folder/public_id.jpg
-        // We need to extract "folder/public_id"
         int uploadIndex = url.indexOf("/upload/");
         if (uploadIndex == -1) {
             throw new IllegalArgumentException("Invalid Cloudinary URL");
         }
         
-        // Find the version part (e.g., /v1572285634/)
-        int versionIndex = url.indexOf("/v", uploadIndex + 8);
-        if (versionIndex == -1) {
-            throw new IllegalArgumentException("Invalid Cloudinary URL: Missing version");
+        String path = url.substring(uploadIndex + 8);
+        int lastDot = path.lastIndexOf('.');
+        if (lastDot != -1) {
+            path = path.substring(0, lastDot);
         }
-
-        int startIndex = url.indexOf('/', versionIndex + 1) + 1;
-        int endIndex = url.lastIndexOf('.');
         
-        if (startIndex == -1 || endIndex == -1 || startIndex >= endIndex) {
+        String[] segments = path.split("/");
+        StringBuilder publicIdBuilder = new StringBuilder();
+        boolean foundPublicIdStart = false;
+        
+        for (String segment : segments) {
+            if (segment.isEmpty()) {
+                continue;
+            }
+            if (!foundPublicIdStart) {
+                if (segment.matches("v\\d+")) {
+                    foundPublicIdStart = true;
+                    continue;
+                }
+                if (isTransformation(segment)) {
+                    continue;
+                }
+                foundPublicIdStart = true;
+            }
+            
+            if (foundPublicIdStart) {
+                if (publicIdBuilder.length() > 0) {
+                    publicIdBuilder.append("/");
+                }
+                publicIdBuilder.append(segment);
+            }
+        }
+        
+        if (publicIdBuilder.length() == 0) {
             throw new IllegalArgumentException("Invalid Cloudinary URL: Cannot extract public ID");
         }
+        
+        return publicIdBuilder.toString();
+    }
 
-        return url.substring(startIndex, endIndex);
+    private boolean isTransformation(String segment) {
+        String regex = "^(?:(c|dpr|e|f|fl|g|h|l|p|q|r|t|u|w|x|y|z|ac|br|co|dl|dn|du|eo|fps|ki|so|vc|vs|b|o|a|d|cs)_[a-zA-Z0-9-._]+)(?:,(?:(c|dpr|e|f|fl|g|h|l|p|q|r|t|u|w|x|y|z|ac|br|co|dl|dn|du|eo|fps|ki|so|vc|vs|b|o|a|d|cs)_[a-zA-Z0-9-._]+))*$";
+        return segment.matches(regex);
     }
 }

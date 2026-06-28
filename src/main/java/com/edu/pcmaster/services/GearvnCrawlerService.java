@@ -68,28 +68,24 @@ public class GearvnCrawlerService {
 		this.productImageRepository = productImageRepository;
 	}
 
-	/**
-	 * Crawls GearVN page to preview data without saving.
-	 */
+	
 	public Map<String, Object> previewProduct(GearvnImportRequest request) {
 		return crawlData(request.url(), request.categoryId());
 	}
 
-	/**
-	 * Crawls GearVN page, maps to Product entity, and saves to database.
-	 */
+	
 	@Transactional
 	public ProductResponse importProduct(GearvnImportRequest request) {
 		Map<String, Object> crawled = crawlData(request.url(), request.categoryId());
 
-		// 1. Category check
+		
 		Category category = categoryRepository.findById(request.categoryId())
 				.orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy danh mục ID: " + request.categoryId()));
 
 		@SuppressWarnings("unchecked")
 		Map<String, String> specsMap = (Map<String, String>) crawled.get("specs");
 
-		// 2. Brand check (find or create)
+		
 		String brandName = (String) crawled.get("brand");
 		if (specsMap != null && specsMap.containsKey("brand") && !specsMap.get("brand").trim().isEmpty()) {
 			brandName = specsMap.get("brand").trim();
@@ -104,18 +100,18 @@ public class GearvnCrawlerService {
 					return brandRepository.save(newBrand);
 				});
 
-		// 3. Map details
+		
 		String title = (String) crawled.get("title");
 		BigDecimal price = (BigDecimal) crawled.get("price");
 		String thumbnailUrl = (String) crawled.get("thumbnailUrl");
 
-		// Generate Slug first to use for Cloudinary folder path
+		
 		String slug = generateSlug(title);
 		if (productRepository.findBySlug(slug).isPresent()) {
 			slug = slug + "_" + System.currentTimeMillis();
 		}
 
-		// Upload main thumbnail to Cloudinary
+		
 		String cloudFolder = "PCMAster_Storage/Product_detail_Image/" + slug;
 		String cloudThumbnailUrl = null;
 		if (thumbnailUrl != null && !thumbnailUrl.isEmpty()) {
@@ -124,7 +120,7 @@ public class GearvnCrawlerService {
 
 		ObjectNode specsJson;
 		try {
-			// Ensure brand and component_type are set in specs JSON
+			
 			Map<String, Object> extendedSpecs = new LinkedHashMap<>(specsMap);
 			extendedSpecs.put("brand", brand.getName());
 			extendedSpecs.put("component_type", getComponentTypeFromCategory(category));
@@ -133,21 +129,21 @@ public class GearvnCrawlerService {
 			specsJson = objectMapper.createObjectNode();
 		}
 
-		// Create Product entity
+		
 		Product product = new Product();
 		product.setName(title);
 		product.setSlug(slug);
 		product.setBrand(brand);
 		product.setCategory(category);
 		product.setPrice(price);
-		product.setStock(0); // Admin adds stock later through purchase order
-		product.setDescription(null); // Ignore description, do not map to object
+		product.setStock(0); 
+		product.setDescription(null); 
 		product.setThumbnailUrl(cloudThumbnailUrl != null ? cloudThumbnailUrl : thumbnailUrl);
 		product.setSpecsJson(specsJson);
 
 		Product saved = productRepository.save(product);
 
-		// 4. Scrape & upload gallery images to Cloudinary, then save to ProductImage table
+		
 		@SuppressWarnings("unchecked")
 		List<String> galleryImages = (List<String>) crawled.get("images");
 		if (galleryImages != null && !galleryImages.isEmpty()) {
@@ -169,9 +165,9 @@ public class GearvnCrawlerService {
 		return buildProductResponse(saved, discountsMap);
 	}
 
-	// ──────────────────────────────────────────────────────────────────────────
-	//  Crawling & Parsing Helpers
-	// ──────────────────────────────────────────────────────────────────────────
+	
+	
+	
 
 	private Map<String, Object> crawlData(String url, Long categoryId) {
 		try {
@@ -187,7 +183,7 @@ public class GearvnCrawlerService {
 
 			String html = doc.html();
 
-			// 1. Extract product data JSON using regex
+			
 			Pattern dataPattern = Pattern.compile("\"?data\"?\\s*:\\s*(\\{.+?\\})\\s*,\\s*\"?id\"?");
 			Matcher dataMatcher = dataPattern.matcher(html);
 
@@ -198,25 +194,25 @@ public class GearvnCrawlerService {
 			String jsonString = dataMatcher.group(1);
 			JsonNode productData = objectMapper.readTree(jsonString);
 
-			// Extract basic details
+			
 			String title = productData.path("title").asText("").trim();
 			String vendorBrand = productData.path("vendor").asText("").trim();
 			String description = productData.path("description").asText("").trim();
 			double rawPrice = productData.path("price").asDouble(0.0);
-			BigDecimal price = BigDecimal.valueOf(rawPrice / 100.0); // Convert Haravan cents to VND
+			BigDecimal price = BigDecimal.valueOf(rawPrice / 100.0); 
 
-			// Extract thumbnail URL
+			
 			String featuredImage = productData.path("featured_image").asText("").trim();
 			String thumbnailUrl = ensureHttpsUrl(featuredImage);
 
-			// Extract SKU
+			
 			String sku = "";
 			JsonNode variants = productData.path("variants");
 			if (variants.isArray() && !variants.isEmpty()) {
 				sku = variants.get(0).path("sku").asText("").trim();
 			}
 
-			// Extract all gallery images
+			
 			List<String> images = new ArrayList<>();
 			JsonNode imagesNode = productData.path("images");
 			if (imagesNode.isArray()) {
@@ -228,7 +224,7 @@ public class GearvnCrawlerService {
 				}
 			}
 
-			// Crawl additional images from the description HTML and push to Cloudinary
+			
 			if (!description.isEmpty()) {
 				try {
 					Document descDoc = Jsoup.parse(description);
@@ -247,7 +243,7 @@ public class GearvnCrawlerService {
 				}
 			}
 
-			// 2. Fetch technical specifications from worker
+			
 			Map<String, String> specs = new LinkedHashMap<>();
 			if (!sku.isEmpty()) {
 				try {
@@ -260,7 +256,7 @@ public class GearvnCrawlerService {
 			Map<String, Object> result = new HashMap<>();
 			result.put("title", title);
 			result.put("brand", vendorBrand.isEmpty() ? "GearVN" : vendorBrand);
-			result.put("description", null); // Bỏ qua phần mô tả, không map vào object
+			result.put("description", null); 
 			result.put("price", price);
 			result.put("thumbnailUrl", thumbnailUrl);
 			result.put("sku", sku);
@@ -291,13 +287,13 @@ public class GearvnCrawlerService {
 
 			String body = response.body();
 
-			// Extract table inner HTML
+			
 			Pattern tablePattern = Pattern.compile("container\\.innerHTML\\s*=\\s*'([\\s\\S]+?)';");
 			Matcher matcher = tablePattern.matcher(body);
 
 			if (matcher.find()) {
 				String escapedHtml = matcher.group(1);
-				// Unescape quotes and slashes
+				
 				String htmlTable = escapedHtml.replace("\\\"", "\"").replace("\\/", "/");
 				Document tableDoc = Jsoup.parse(htmlTable);
 				Elements rows = tableDoc.select("tr.gvn-spec-row");

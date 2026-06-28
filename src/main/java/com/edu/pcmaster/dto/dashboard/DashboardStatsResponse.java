@@ -11,7 +11,7 @@ public record DashboardStatsResponse(
     long pendingPurchaseOrders,
     List<ActivityResponse> recentActivities,
     
-    // Thống kê thực tế mới
+    
     BigDecimal revenue30Days,
     BigDecimal cost30Days,
     long ordersCount30Days,
@@ -25,7 +25,7 @@ public record DashboardStatsResponse(
     public record ActivityResponse(
         String title,
         String timeAgo,
-        String type // e.g. "ORDER", "PURCHASE_ORDER", "PRODUCT"
+        String type 
     ) {}
 
     public record TopProductResponse(
@@ -41,7 +41,7 @@ public record DashboardStatsResponse(
     ) {}
 
     public record PeriodRevenueResponse(
-        String label, // e.g., "Tháng 06/2026", "Quý 1/2026", "Năm 2026"
+        String label, 
         BigDecimal revenue,
         BigDecimal cost
     ) {}

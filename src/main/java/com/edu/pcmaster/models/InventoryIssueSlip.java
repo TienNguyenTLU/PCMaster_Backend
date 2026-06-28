@@ -38,7 +38,7 @@ public class InventoryIssueSlip {
 	private java.util.List<InventoryIssueSlipItem> items = new java.util.ArrayList<>();
 
 	@Column(nullable = false, length = 20)
-	private String status = "PENDING"; // PENDING, COMPLETED
+	private String status = "PENDING"; 
 
 	@Column(name = "document_url")
 	private String documentUrl;

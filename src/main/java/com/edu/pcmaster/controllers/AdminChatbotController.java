@@ -11,10 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.Instant;
 import java.util.Map;
 
-/**
- * Controller quản trị chatbot RAG.
- * Chỉ dành cho ADMIN – tất cả endpoints yêu cầu xác thực JWT với role ADMIN.
- */
+
 @RestController
 @RequestMapping("/api/admin/chatbot")
 @PreAuthorize("hasRole('ADMIN')")
@@ -26,12 +23,7 @@ public class AdminChatbotController {
         this.ingestionService = ingestionService;
     }
 
-    /**
-     * Kích hoạt reindex toàn bộ catalog sản phẩm vào PGVector.
-     * Nên gọi sau khi thêm/sửa/xóa nhiều sản phẩm.
-     *
-     * POST /api/admin/chatbot/reindex
-     */
+    
     @PostMapping("/reindex")
     public ResponseEntity<Map<String, Object>> reindex() {
         long startTime = System.currentTimeMillis();
@@ -48,11 +40,7 @@ public class AdminChatbotController {
         ));
     }
 
-    /**
-     * Lấy thông tin trạng thái hiện tại của vector store.
-     *
-     * GET /api/admin/chatbot/status
-     */
+    
     @GetMapping("/status")
     public ResponseEntity<Map<String, Object>> status() {
         long indexableCount = ingestionService.getIndexableProductCount();

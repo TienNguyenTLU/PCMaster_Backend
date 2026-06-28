@@ -106,7 +106,7 @@ public class MediaService {
 		if (file == null || file.isEmpty()) {
 			throw new BadRequestException("Tệp tin tải lên không hợp lệ hoặc trống");
 		}
-		if (file.getSize() > 20 * 1024 * 1024) { // 20 MB
+		if (file.getSize() > 20 * 1024 * 1024) { 
 			throw new BadRequestException("Dung lượng tệp tin vượt quá giới hạn tối đa cho phép là 20MB");
 		}
 	}
@@ -115,7 +115,7 @@ public class MediaService {
 		if (fileBytes == null || fileBytes.length == 0) {
 			throw new BadRequestException("Dữ liệu tệp tin không hợp lệ hoặc trống");
 		}
-		if (fileBytes.length > 20 * 1024 * 1024) { // 20 MB
+		if (fileBytes.length > 20 * 1024 * 1024) { 
 			throw new BadRequestException("Dung lượng tệp tin vượt quá giới hạn tối đa cho phép là 20MB");
 		}
 	}
@@ -124,7 +124,7 @@ public class MediaService {
 		if (file == null || !file.exists()) {
 			throw new BadRequestException("Tệp tin không tồn tại");
 		}
-		if (file.length() > 20 * 1024 * 1024) { // 20 MB
+		if (file.length() > 20 * 1024 * 1024) { 
 			throw new BadRequestException("Dung lượng tệp tin vượt quá giới hạn tối đa cho phép là 20MB");
 		}
 	}

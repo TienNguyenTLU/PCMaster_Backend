@@ -44,7 +44,7 @@ public class SecurityConfig {
 						.requestMatchers("/api/auth/**").permitAll()
 						.requestMatchers("/api/products/**", "/api/categories/**", "/api/brands/**",
 								"/api/bottleneck", "/api/chat", "/api/banners/**", "/api/product-images/**",
-								"/api/ai/**").permitAll()
+								"/api/ai/**", "/api/orders/vnpay-ipn").permitAll()
 						.anyRequest().authenticated()
 				)
 				.httpBasic(Customizer.withDefaults());

@@ -40,8 +40,10 @@ public class BrandService {
 		return brandRepository.save(brand);
 	}
 
+	@org.springframework.transaction.annotation.Transactional
 	public void delete(Long id) {
 		Brand brand = getById(id);
+		brandRepository.deleteFromSupplierBrands(id);
 		brandRepository.delete(brand);
 	}
 }

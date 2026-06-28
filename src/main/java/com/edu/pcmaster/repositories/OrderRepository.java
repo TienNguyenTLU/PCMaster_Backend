@@ -10,6 +10,7 @@ import com.edu.pcmaster.models.OrderStatus;
 import com.edu.pcmaster.models.User;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
+	List<Order> findByUserOrderByCreatedAtDesc(User user);
 	List<Order> findByUser(User user);
 
 	List<Order> findAllByOrderByCreatedAtDesc();

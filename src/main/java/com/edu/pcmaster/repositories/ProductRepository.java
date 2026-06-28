@@ -15,13 +15,13 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 	Optional<Product> findBySlug(String slug);
 
 	@Query(value = "SELECT p FROM Product p LEFT JOIN FETCH p.category LEFT JOIN FETCH p.brand "
-			+ "WHERE (:categoryId IS NULL OR p.category.id = :categoryId) "
+			+ "WHERE (:categoryId IS NULL OR p.category.id = :categoryId OR p.category.parent.id = :categoryId) "
 			+ "AND (:brandId IS NULL OR p.brand.id = :brandId) "
 			+ "AND (:keyword IS NULL OR :keyword = '' "
 			+ "OR LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) "
 			+ "OR LOWER(p.description) LIKE LOWER(CONCAT('%', :keyword, '%')))",
 			countQuery = "SELECT count(p) FROM Product p "
-					+ "WHERE (:categoryId IS NULL OR p.category.id = :categoryId) "
+					+ "WHERE (:categoryId IS NULL OR p.category.id = :categoryId OR p.category.parent.id = :categoryId) "
 					+ "AND (:brandId IS NULL OR p.brand.id = :brandId) "
 					+ "AND (:keyword IS NULL OR :keyword = '' "
 					+ "OR LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) "

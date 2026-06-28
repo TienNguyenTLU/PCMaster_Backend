@@ -11,10 +11,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.transaction.support.TransactionSynchronization;
 import java.util.concurrent.CompletableFuture;
 
-/**
- * JPA Entity Listener listening to Product modifications.
- * Automatically synchronizes Product data with PGVector Store using EmbeddingIngestionService.
- */
+
 @Component
 public class ProductListener {
 

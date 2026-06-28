@@ -62,7 +62,7 @@ public class AdminPromotionController {
 		}
 		Promotion savedPromotion = promotionRepository.save(promotion);
 
-		// Auto create banner
+		
 		if (savedPromotion.getBannerUrl() != null && !savedPromotion.getBannerUrl().isEmpty()) {
 			int maxOrder = bannerRepository.findAll().stream()
 					.mapToInt(Banner::getDisplayOrder)
@@ -102,7 +102,7 @@ public class AdminPromotionController {
 		
 		Promotion savedPromotion = promotionRepository.save(promotion);
 
-		// Update or auto-create banner
+		
 		String oldLink = "/promotions/" + oldSlug;
 		String newLink = "/promotions/" + savedPromotion.getSlug();
 
@@ -136,7 +136,7 @@ public class AdminPromotionController {
 		Promotion promotion = promotionRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Promotion not found"));
 		
-		// Delete any corresponding banners using bannerService to clean up cloud images
+		
 		String promotionLink = "/promotions/" + promotion.getSlug();
 		bannerRepository.findAll().stream()
 				.filter(b -> promotionLink.equals(b.getLinkUrl()))
@@ -148,7 +148,7 @@ public class AdminPromotionController {
 					}
 				});
 
-		// Delete promotion's own banner image from Cloudinary
+		
 		String promoBannerUrl = promotion.getBannerUrl();
 		if (promoBannerUrl != null && promoBannerUrl.contains("cloudinary.com")) {
 			try {
@@ -167,16 +167,50 @@ public class AdminPromotionController {
 		if (uploadIndex == -1) {
 			throw new IllegalArgumentException("Invalid Cloudinary URL");
 		}
-		int versionIndex = url.indexOf("/v", uploadIndex + 8);
-		if (versionIndex == -1) {
-			throw new IllegalArgumentException("Invalid Cloudinary URL: Missing version");
+		
+		String path = url.substring(uploadIndex + 8);
+		int lastDot = path.lastIndexOf('.');
+		if (lastDot != -1) {
+			path = path.substring(0, lastDot);
 		}
-		int startIndex = url.indexOf('/', versionIndex + 1) + 1;
-		int endIndex = url.lastIndexOf('.');
-		if (startIndex == -1 || endIndex == -1 || startIndex >= endIndex) {
+		
+		String[] segments = path.split("/");
+		StringBuilder publicIdBuilder = new StringBuilder();
+		boolean foundPublicIdStart = false;
+		
+		for (String segment : segments) {
+			if (segment.isEmpty()) {
+				continue;
+			}
+			if (!foundPublicIdStart) {
+				if (segment.matches("v\\d+")) {
+					foundPublicIdStart = true;
+					continue;
+				}
+				if (isTransformation(segment)) {
+					continue;
+				}
+				foundPublicIdStart = true;
+			}
+			
+			if (foundPublicIdStart) {
+				if (publicIdBuilder.length() > 0) {
+					publicIdBuilder.append("/");
+				}
+				publicIdBuilder.append(segment);
+			}
+		}
+		
+		if (publicIdBuilder.length() == 0) {
 			throw new IllegalArgumentException("Invalid Cloudinary URL: Cannot extract public ID");
 		}
-		return url.substring(startIndex, endIndex);
+		
+		return publicIdBuilder.toString();
+	}
+
+	private boolean isTransformation(String segment) {
+		String regex = "^(?:(c|dpr|e|f|fl|g|h|l|p|q|r|t|u|w|x|y|z|ac|br|co|dl|dn|du|eo|fps|ki|so|vc|vs|b|o|a|d|cs)_[a-zA-Z0-9-._]+)(?:,(?:(c|dpr|e|f|fl|g|h|l|p|q|r|t|u|w|x|y|z|ac|br|co|dl|dn|du|eo|fps|ki|so|vc|vs|b|o|a|d|cs)_[a-zA-Z0-9-._]+))*$";
+		return segment.matches(regex);
 	}
 
 	private PromotionResponse toResponse(Promotion p) {

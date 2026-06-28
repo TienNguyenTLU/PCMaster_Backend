@@ -108,7 +108,7 @@ public class PurchaseOrderService {
 			Product product = item.getProduct();
 			product.setStock(product.getStock() + item.getQuantity());
 			
-			// Update product selling price if provided
+			
 			if (newPrices != null && newPrices.containsKey(product.getId())) {
 				product.setPrice(newPrices.get(product.getId()));
 			}

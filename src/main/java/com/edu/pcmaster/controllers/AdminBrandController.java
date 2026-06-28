@@ -49,15 +49,15 @@ public class AdminBrandController {
 			@PathVariable Long id,
 			@RequestParam("name") String name,
 			@RequestPart(value = "logo", required = false) org.springframework.web.multipart.MultipartFile logo) {
-		String logoUrl = null; // We might want to keep the old logo if no new one is provided, 
-							   // but BrandRequest currently overwrites. 
-							   // Let's check BrandService update logic.
+		String logoUrl = null; 
+							   
+							   
 		if (logo != null && !logo.isEmpty()) {
 			logoUrl = mediaService.upload(logo, "PCMaster_Storage/Brands");
 		} else {
-			// If no new logo, we should probably keep the existing one.
-			// But for simplicity of the "Brands only have name and logo" request, 
-			// I'll just use the provided name.
+			
+			
+			
 			Brand existing = brandService.getById(id);
 			logoUrl = existing.getLogoUrl();
 		}

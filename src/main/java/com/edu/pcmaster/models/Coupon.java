@@ -26,7 +26,7 @@ public class Coupon {
 	private String code;
 
 	@Column(name = "discount_type", nullable = false, length = 50)
-	private String discountType; // "PERCENTAGE" or "FIXED_AMOUNT"
+	private String discountType; 
 
 	@Column(name = "discount_value", nullable = false, precision = 12, scale = 2)
 	private BigDecimal discountValue;

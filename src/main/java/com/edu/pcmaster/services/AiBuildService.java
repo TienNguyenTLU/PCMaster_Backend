@@ -54,7 +54,7 @@ public class AiBuildService {
 			System.err.println("[AI Build] Failed to call Ollama for PSU recommendation, falling back to static calculation: " + e.getMessage());
 		}
 
-		// Fallback to static calculations
+		
 		return getFallbackPsuRecommendation(cpuName, gpuName);
 	}
 
@@ -87,7 +87,7 @@ public class AiBuildService {
 			System.err.println("[AI Build] Failed to call Ollama for CPU advice, falling back to static rules: " + e.getMessage());
 		}
 
-		// Fallback to static rules
+		
 		return getFallbackCpuAdvice(name);
 	}
 
@@ -103,8 +103,8 @@ public class AiBuildService {
 	}
 
 	private PsuRecommendationResponse getFallbackPsuRecommendation(String cpuName, String gpuName) {
-		int cpuTdp = 100; // default fallback
-		int gpuTdp = 200; // default fallback
+		int cpuTdp = 100; 
+		int gpuTdp = 200; 
 
 		String cpuLower = cpuName.toLowerCase();
 		if (cpuLower.contains("i9") || cpuLower.contains("ryzen 9") || cpuLower.contains("9950") || cpuLower.contains("14900") || cpuLower.contains("13900")) {
@@ -128,7 +128,7 @@ public class AiBuildService {
 
 		int totalTdp = cpuTdp + gpuTdp;
 		int recommendedWattage = (int) Math.ceil((totalTdp + 150) / 50.0) * 50;
-		if (recommendedWattage < 500) recommendedWattage = 500; // safe minimum
+		if (recommendedWattage < 500) recommendedWattage = 500; 
 
 		String explanation = String.format("Đề xuất công suất nguồn tối thiểu %dW dựa trên công suất tỏa nhiệt (TDP) ước tính của CPU (%dW) và GPU (%dW) kèm hệ số an toàn 150W. (Tính toán tự động ngoại tuyến)",
 				recommendedWattage, cpuTdp, gpuTdp);

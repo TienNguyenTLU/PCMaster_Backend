@@ -3,6 +3,7 @@ package com.edu.pcmaster.dto.order;
 import java.util.List;
 
 import com.edu.pcmaster.models.DeliveryType;
+import com.edu.pcmaster.models.PaymentMethod;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
@@ -14,6 +15,8 @@ public record OrderRequest(
 		String recipientName,
 		String recipientPhone,
 		String shippingAddress,
-		String couponCode
+		String couponCode,
+		PaymentMethod paymentMethod,
+		java.time.Instant appointmentTime
 ) {
 }

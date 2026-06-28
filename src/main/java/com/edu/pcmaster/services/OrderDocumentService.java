@@ -25,14 +25,14 @@ public class OrderDocumentService {
 	private static final DateTimeFormatter DATE_FMT =
 			DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").withZone(ZoneId.of("Asia/Ho_Chi_Minh"));
 
-	/** Generate XLSX bytes for a confirmed order (phiếu xuất kho) */
+	
 	public byte[] generateExportDocument(Order order) throws IOException {
 		try (XSSFWorkbook wb = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
 
 			Sheet sheet = wb.createSheet("PHIẾU XUẤT KHO");
 			sheet.setDefaultColumnWidth(14);
 
-			// ── Styles ────────────────────────────────────────────────────────────
+			
 			Font titleFont = wb.createFont();
 			titleFont.setBold(true);
 			titleFont.setFontHeightInPoints((short) 18);
@@ -62,26 +62,26 @@ public class OrderDocumentService {
 			signatureFont.setFontHeightInPoints((short) 11);
 			signatureFont.setFontName("Times New Roman");
 
-			// Title style (centered, bold, large)
+			
 			CellStyle titleStyle = wb.createCellStyle();
 			titleStyle.setFont(titleFont);
 			titleStyle.setAlignment(HorizontalAlignment.CENTER);
 			titleStyle.setVerticalAlignment(VerticalAlignment.CENTER);
 
-			// Subtitle style (centered, normal)
+			
 			CellStyle subtitleStyle = wb.createCellStyle();
 			subtitleStyle.setFont(subtitleFont);
 			subtitleStyle.setAlignment(HorizontalAlignment.CENTER);
 
-			// Label style (bold, left)
+			
 			CellStyle labelStyle = wb.createCellStyle();
 			labelStyle.setFont(boldFont);
 
-			// Normal style
+			
 			CellStyle normalStyle = wb.createCellStyle();
 			normalStyle.setFont(normalFont);
 
-			// Header style (dark blue background, white text, bordered)
+			
 			CellStyle tableHeaderStyle = wb.createCellStyle();
 			tableHeaderStyle.setFont(headerFont);
 			tableHeaderStyle.setFillForegroundColor(IndexedColors.DARK_BLUE.getIndex());
@@ -93,7 +93,7 @@ public class OrderDocumentService {
 			tableHeaderStyle.setBorderLeft(BorderStyle.THIN);
 			tableHeaderStyle.setBorderRight(BorderStyle.THIN);
 
-			// Data cell style (bordered, left)
+			
 			CellStyle dataCellStyle = wb.createCellStyle();
 			dataCellStyle.setFont(normalFont);
 			dataCellStyle.setBorderTop(BorderStyle.THIN);
@@ -102,12 +102,12 @@ public class OrderDocumentService {
 			dataCellStyle.setBorderRight(BorderStyle.THIN);
 			dataCellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
 
-			// Data cell center
+			
 			CellStyle dataCellCenterStyle = wb.createCellStyle();
 			dataCellCenterStyle.cloneStyleFrom(dataCellStyle);
 			dataCellCenterStyle.setAlignment(HorizontalAlignment.CENTER);
 
-			// Data cell number (bordered, right, number format)
+			
 			CellStyle dataCellNumberStyle = wb.createCellStyle();
 			dataCellNumberStyle.setFont(normalFont);
 			dataCellNumberStyle.setBorderTop(BorderStyle.THIN);
@@ -118,7 +118,7 @@ public class OrderDocumentService {
 			dataCellNumberStyle.setVerticalAlignment(VerticalAlignment.CENTER);
 			dataCellNumberStyle.setDataFormat(wb.createDataFormat().getFormat("#,##0"));
 
-			// Total style (bold, right, bordered)
+			
 			CellStyle totalLabelStyle = wb.createCellStyle();
 			totalLabelStyle.setFont(boldFont);
 			totalLabelStyle.setAlignment(HorizontalAlignment.RIGHT);
@@ -136,7 +136,7 @@ public class OrderDocumentService {
 			totalValueStyle.setBorderRight(BorderStyle.THIN);
 			totalValueStyle.setDataFormat(wb.createDataFormat().getFormat("#,##0"));
 
-			// Signature header style (bold, center)
+			
 			CellStyle sigStyle = wb.createCellStyle();
 			sigStyle.setFont(signatureFont);
 			sigStyle.setAlignment(HorizontalAlignment.CENTER);
@@ -148,7 +148,7 @@ public class OrderDocumentService {
 
 			int rowIdx = 0;
 
-			// ── Row 0: Company name ──────────────────────────────────────────────
+			
 			Row r0 = sheet.createRow(rowIdx++);
 			r0.setHeightInPoints(28);
 			Cell c0 = r0.createCell(0);
@@ -156,17 +156,17 @@ public class OrderDocumentService {
 			c0.setCellStyle(titleStyle);
 			sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 5));
 
-			// ── Row 1: Address ───────────────────────────────────────────────────
+			
 			Row r1 = sheet.createRow(rowIdx++);
 			Cell c1 = r1.createCell(0);
 			c1.setCellValue("Địa chỉ showroom: 123 Đường Láng, Đống Đa, Hà Nội  |  Hotline: 1800 1234  |  pcmaster.vn");
 			c1.setCellStyle(subtitleStyle);
 			sheet.addMergedRegion(new CellRangeAddress(1, 1, 0, 5));
 
-			// ── Row 2: blank ─────────────────────────────────────────────────────
+			
 			sheet.createRow(rowIdx++);
 
-			// ── Row 3: Title "PHIẾU XUẤT KHO" ───────────────────────────────────
+			
 			Row r3 = sheet.createRow(rowIdx++);
 			r3.setHeightInPoints(30);
 			Cell c3 = r3.createCell(0);
@@ -174,7 +174,7 @@ public class OrderDocumentService {
 			c3.setCellStyle(titleStyle);
 			sheet.addMergedRegion(new CellRangeAddress(3, 3, 0, 5));
 
-			// ── Row 4: Số phiếu + Ngày xuất ─────────────────────────────────────
+			
 			Row r4 = sheet.createRow(rowIdx++);
 			Cell c4a = r4.createCell(0);
 			c4a.setCellValue("Số phiếu: PX-" + String.format("%05d", order.getId()));
@@ -186,10 +186,10 @@ public class OrderDocumentService {
 			c4b.setCellStyle(subtitleStyle);
 			sheet.addMergedRegion(new CellRangeAddress(4, 4, 3, 5));
 
-			// ── Row 5: blank ─────────────────────────────────────────────────────
+			
 			sheet.createRow(rowIdx++);
 
-			// ── Customer info ────────────────────────────────────────────────────
+			
 			String userName = order.getUser() != null ? order.getUser().getUsername() : "N/A";
 			String userEmail = order.getUser() != null ? order.getUser().getEmail() : "N/A";
 
@@ -216,10 +216,10 @@ public class OrderDocumentService {
 				createLabelValueCells(r8, 0, "Showroom:", "123 Đường Láng, Đống Đa, Hà Nội", labelStyle, normalStyle);
 			}
 
-			// ── Blank row ────────────────────────────────────────────────────────
+			
 			sheet.createRow(rowIdx++);
 
-			// ── Table header ─────────────────────────────────────────────────────
+			
 			Row headerRow = sheet.createRow(rowIdx++);
 			headerRow.setHeightInPoints(22);
 			String[] headers = {"STT", "Tên sản phẩm", "ĐVT", "Số lượng", "Đơn giá (₫)", "Thành tiền (₫)"};
@@ -229,7 +229,7 @@ public class OrderDocumentService {
 				cell.setCellStyle(tableHeaderStyle);
 			}
 
-			// ── Data rows ────────────────────────────────────────────────────────
+			
 			List<OrderItem> items = order.getItems();
 			BigDecimal grandTotal = BigDecimal.ZERO;
 
@@ -266,14 +266,14 @@ public class OrderDocumentService {
 				totalCell.setCellStyle(dataCellNumberStyle);
 			}
 
-			// ── Total row ────────────────────────────────────────────────────────
+			
 			Row totalRow = sheet.createRow(rowIdx++);
 			Cell totalLabelCell = totalRow.createCell(0);
 			totalLabelCell.setCellValue("TỔNG CỘNG");
 			totalLabelCell.setCellStyle(totalLabelStyle);
-			// Merge label across columns 0-4
+			
 			sheet.addMergedRegion(new CellRangeAddress(rowIdx - 1, rowIdx - 1, 0, 4));
-			// Apply border to merged cells
+			
 			for (int c = 1; c <= 4; c++) {
 				Cell mergedCell = totalRow.createCell(c);
 				mergedCell.setCellStyle(totalLabelStyle);
@@ -282,11 +282,11 @@ public class OrderDocumentService {
 			grandTotalCell.setCellValue(grandTotal.doubleValue());
 			grandTotalCell.setCellStyle(totalValueStyle);
 
-			// ── Blank rows before signatures ─────────────────────────────────────
+			
 			sheet.createRow(rowIdx++);
 			sheet.createRow(rowIdx++);
 
-			// ── Signature section ────────────────────────────────────────────────
+			
 			Row sigRow = sheet.createRow(rowIdx++);
 			Cell sig1 = sigRow.createCell(0);
 			sig1.setCellValue("Người lập phiếu");
@@ -309,7 +309,7 @@ public class OrderDocumentService {
 			Cell sig3b = sigRow.createCell(5);
 			sig3b.setCellStyle(sigStyle);
 
-			// ── "(Ký, ghi rõ họ tên)" row ────────────────────────────────────────
+			
 			Row sigSubRow = sheet.createRow(rowIdx++);
 			for (int col = 0; col <= 5; col += 2) {
 				Cell subCell = sigSubRow.createCell(col);
@@ -320,7 +320,7 @@ public class OrderDocumentService {
 				subCellB.setCellStyle(sigSubStyle);
 			}
 
-			// ── Footer ───────────────────────────────────────────────────────────
+			
 			sheet.createRow(rowIdx++);
 			sheet.createRow(rowIdx++);
 			sheet.createRow(rowIdx++);
@@ -331,15 +331,15 @@ public class OrderDocumentService {
 			footerCell.setCellStyle(subtitleStyle);
 			sheet.addMergedRegion(new CellRangeAddress(rowIdx, rowIdx, 0, 5));
 
-			// ── Auto-size columns ────────────────────────────────────────────────
-			sheet.setColumnWidth(0, 2000);   // STT
-			sheet.setColumnWidth(1, 12000);  // Tên sản phẩm
-			sheet.setColumnWidth(2, 2500);   // ĐVT
-			sheet.setColumnWidth(3, 3000);   // Số lượng
-			sheet.setColumnWidth(4, 5000);   // Đơn giá
-			sheet.setColumnWidth(5, 5500);   // Thành tiền
+			
+			sheet.setColumnWidth(0, 2000);   
+			sheet.setColumnWidth(1, 12000);  
+			sheet.setColumnWidth(2, 2500);   
+			sheet.setColumnWidth(3, 3000);   
+			sheet.setColumnWidth(4, 5000);   
+			sheet.setColumnWidth(5, 5500);   
 
-			// ── Print setup ──────────────────────────────────────────────────────
+			
 			sheet.getPrintSetup().setLandscape(false);
 			sheet.getPrintSetup().setPaperSize(PrintSetup.A4_PAPERSIZE);
 			sheet.setFitToPage(true);
@@ -349,7 +349,7 @@ public class OrderDocumentService {
 		}
 	}
 
-	// ── Helpers ───────────────────────────────────────────────────────────────
+	
 
 	private void createLabelValueCells(Row row, int startCol, String label, String value,
 									   CellStyle labelStyle, CellStyle valueStyle) {

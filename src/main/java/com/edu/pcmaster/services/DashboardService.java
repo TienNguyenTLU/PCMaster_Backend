@@ -45,7 +45,7 @@ public class DashboardService {
         List<Order> allOrders = orderRepository.findAll();
         List<Product> allProducts = productRepository.findAll();
 
-        // 1. Tổng doanh thu & lợi nhuận tổng thể (các đơn đã confirm, shipped, delivered)
+        
         List<Order> successfulOrders = allOrders.stream()
                 .filter(o -> o.getStatus() == OrderStatus.CONFIRMED
                         || o.getStatus() == OrderStatus.SHIPPED
@@ -56,7 +56,7 @@ public class DashboardService {
         BigDecimal totalCost = calculateCost(successfulOrders);
         BigDecimal totalProfit = totalRevenue.subtract(totalCost);
 
-        // 2. Các số lượng cơ bản
+        
         long activeOrders = allOrders.stream()
                 .filter(o -> o.getStatus() == OrderStatus.DRAFT
                         || o.getStatus() == OrderStatus.CONFIRMED
@@ -71,7 +71,7 @@ public class DashboardService {
                 .filter(po -> po.getStatus() == PurchaseOrderStatus.DRAFT)
                 .count();
 
-        // 3. Hoạt động gần đây (5 đơn hàng mới nhất)
+        
         List<ActivityResponse> activities = new ArrayList<>();
         allOrders.stream()
                 .sorted((o1, o2) -> o2.getCreatedAt().compareTo(o1.getCreatedAt()))
@@ -81,7 +81,7 @@ public class DashboardService {
                         "Vừa xong", 
                         "ORDER")));
 
-        // 4. Các thống kê trong 30 ngày gần đây
+        
         Instant thirtyDaysAgo = Instant.now().minus(30, ChronoUnit.DAYS);
         List<Order> orders30Days = allOrders.stream()
                 .filter(o -> o.getCreatedAt().isAfter(thirtyDaysAgo))
@@ -102,7 +102,7 @@ public class DashboardService {
 
         long processingOrdersCount = activeOrders;
 
-        // 5. Top 5 sản phẩm bán chạy nhất trong 30 ngày qua
+        
         Map<Product, Long> productQuantities = successfulOrders30Days.stream()
                 .flatMap(o -> o.getItems().stream())
                 .filter(item -> item.getProduct() != null)
@@ -141,7 +141,7 @@ public class DashboardService {
                 })
                 .toList();
 
-        // 6. Biểu đồ tròn: Doanh thu theo loại linh kiện (danh mục)
+        
         Map<String, BigDecimal> categoryRevenues = successfulOrders.stream()
                 .flatMap(o -> o.getItems().stream())
                 .filter(item -> item.getProduct() != null)
@@ -161,10 +161,10 @@ public class DashboardService {
                 .map(entry -> new CategoryRevenueResponse(entry.getKey(), entry.getValue()))
                 .toList();
 
-        // 7. Nhóm doanh thu theo chu kỳ (tháng, quý, năm)
+        
         ZoneId zoneId = ZoneId.of("Asia/Ho_Chi_Minh");
 
-        // Theo tháng
+        
         Map<String, List<Order>> ordersByMonth = successfulOrders.stream()
                 .collect(Collectors.groupingBy(o -> {
                     ZonedDateTime zdt = o.getCreatedAt().atZone(zoneId);
@@ -187,7 +187,7 @@ public class DashboardService {
                 ))
                 .toList();
 
-        // Theo quý
+        
         Map<String, List<Order>> ordersByQuarter = successfulOrders.stream()
                 .collect(Collectors.groupingBy(o -> {
                     ZonedDateTime zdt = o.getCreatedAt().atZone(zoneId);
@@ -211,7 +211,7 @@ public class DashboardService {
                 ))
                 .toList();
 
-        // Theo năm
+        
         Map<String, List<Order>> ordersByYear = successfulOrders.stream()
                 .collect(Collectors.groupingBy(o -> {
                     ZonedDateTime zdt = o.getCreatedAt().atZone(zoneId);

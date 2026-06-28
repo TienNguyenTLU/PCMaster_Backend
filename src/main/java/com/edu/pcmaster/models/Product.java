@@ -19,7 +19,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -74,9 +74,13 @@ public class Product {
 	@Column(name = "updated_at", nullable = false)
 	private Instant updatedAt;
 
-	@OneToOne(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
 	@com.fasterxml.jackson.annotation.JsonIgnore
-	private PcSystemDetail pcSystemDetail;
+	private List<PcSystemComponent> pcComponents = new ArrayList<>();
+
+	@OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+	@com.fasterxml.jackson.annotation.JsonIgnore
+	private List<ProductImage> images = new ArrayList<>();
 
 	@ManyToMany(mappedBy = "products", fetch = FetchType.LAZY)
 	@com.fasterxml.jackson.annotation.JsonIgnore
@@ -96,14 +100,14 @@ public class Product {
 		normalizeSpecs();
 	}
 
-	// Function phục vụ crawl data, không ảnh hưởng logic
+	
 	private void normalizeSpecs() {
 		if (specsJson == null || !specsJson.isObject()) {
 			specsJson = JsonNodeFactory.instance.objectNode();
 			return;
 		}
 
-		// Determine component type
+		
 		String componentType = "";
 		if (specsJson.has("component_type")) {
 			componentType = specsJson.get("component_type").asText();

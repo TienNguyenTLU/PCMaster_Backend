@@ -3,9 +3,7 @@ package com.edu.pcmaster.dto.bottleneck;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Response DTO from the Python ML service.
- */
+
 public record MlPredictResponse(
 		double bottleneck_percent,
 		String bottleneck_side,

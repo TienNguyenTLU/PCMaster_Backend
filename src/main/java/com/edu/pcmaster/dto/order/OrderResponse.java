@@ -6,6 +6,8 @@ import java.util.List;
 
 import com.edu.pcmaster.models.DeliveryType;
 import com.edu.pcmaster.models.OrderStatus;
+import com.edu.pcmaster.models.PaymentMethod;
+import com.edu.pcmaster.models.PaymentStatus;
 
 public record OrderResponse(
 		Long id,
@@ -22,6 +24,10 @@ public record OrderResponse(
 		Instant createdAt,
 		String couponCode,
 		BigDecimal couponDiscount,
+		PaymentMethod paymentMethod,
+		PaymentStatus paymentStatus,
+		Instant appointmentTime,
+		String rejectReason,
 		List<OrderItemResponse> items
 ) {
 }

@@ -34,7 +34,7 @@ public class BottleneckController {
 		Product cpu = productService.getById(cpuId);
 		Product gpu = productService.getById(gpuId);
 
-		// Use ML service (with DB fallback)
+		
 		MlPredictResponse mlResult = bottleneckService.analyzeWithMl(cpu, gpu, res);
 
 		if (mlResult == null) {
