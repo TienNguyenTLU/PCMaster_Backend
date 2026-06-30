@@ -31,3 +31,5 @@ build/
 
 ### VS Code ###
 .vscode/
+reranker_server.log
+

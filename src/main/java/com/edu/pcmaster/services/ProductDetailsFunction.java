@@ -49,7 +49,7 @@ public class ProductDetailsFunction implements Function<ProductDetailsFunction.R
 
         Product product = productOpt.get();
 
-        // Calculate dynamic active discount
+        
         Map<Long, Integer> discountsMap = productService.getActiveProductDiscountsMap();
         Integer discountPercent = discountsMap.getOrDefault(product.getId(), 0);
         BigDecimal discountPrice = null;
@@ -57,13 +57,13 @@ public class ProductDetailsFunction implements Function<ProductDetailsFunction.R
             discountPrice = productService.calculateDiscountPrice(product.getPrice(), discountPercent);
         }
 
-        // Parse specs JSON
+        
         Map<String, Object> specsMap = new HashMap<>();
         if (product.getSpecsJson() != null && !product.getSpecsJson().isNull()) {
             try {
                 specsMap = objectMapper.convertValue(product.getSpecsJson(), Map.class);
             } catch (Exception ignored) {
-                // If conversions fail, put raw string representation
+                
                 specsMap.put("specs_raw", product.getSpecsJson().toString());
             }
         }

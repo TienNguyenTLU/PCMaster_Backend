@@ -1,23 +1,0 @@
-Starting reranker server on http://127.0.0.1:8090...
- * Serving Flask app 'reranker_server'
- * Debug mode: off
-WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
- * Running on http://127.0.0.1:8090
-Press CTRL+C to quit
-Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
-Loading reranker model: BAAI/bge-reranker-large on CPU...
-Loading weights:   0%|          | 0/393 [00:00<?, ?it/s]Loading weights:  80%|########  | 316/393 [00:00<00:00, 3140.23it/s]Loading weights: 100%|##########| 393/393 [00:00<00:00, 3132.49it/s]
-127.0.0.1 - - [26/Jun/2026 09:03:39] "POST /rerank HTTP/1.1" 200 -
-127.0.0.1 - - [26/Jun/2026 09:06:22] "POST /rerank HTTP/1.1" 200 -
-Starting reranker server on http://127.0.0.1:8090...
- * Serving Flask app 'reranker_server'
- * Debug mode: off
-WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
- * Running on http://127.0.0.1:8090
-Press CTRL+C to quit
-Starting reranker server on http://127.0.0.1:8090...
- * Serving Flask app 'reranker_server'
- * Debug mode: off
-WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
- * Running on http://127.0.0.1:8090
-Press CTRL+C to quit

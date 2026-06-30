@@ -136,7 +136,7 @@ public class InventoryService {
 			}
 
 			if (remaining > 0) {
-				// Fallback cho dữ liệu test: nếu không có đủ lô hàng, dùng giá bán sản phẩm (hoặc 0) làm giá gốc
+				
 				totalCost = totalCost.add(product.getPrice() != null ? product.getPrice().multiply(BigDecimal.valueOf(remaining)) : BigDecimal.ZERO);
 				remaining = 0;
 			}
@@ -197,7 +197,7 @@ public class InventoryService {
 		}
 
 		if (remaining > 0) {
-			// Fallback cho dữ liệu test: nếu không có đủ lô hàng, dùng giá bán sản phẩm (hoặc 0) làm giá gốc
+			
 			totalCost = totalCost.add(product.getPrice() != null ? product.getPrice().multiply(java.math.BigDecimal.valueOf(remaining)) : java.math.BigDecimal.ZERO);
 			remaining = 0;
 		}

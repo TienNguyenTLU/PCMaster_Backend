@@ -78,7 +78,7 @@ public class VnpayService {
 					hashPairs.add(fieldName + "=" + encodedValue);
 					queryPairs.add(encodedName + "=" + encodedValue);
 				} catch (UnsupportedEncodingException e) {
-					// ignore
+					
 				}
 			}
 		}
@@ -94,7 +94,7 @@ public class VnpayService {
 			return false;
 		}
 
-		// Remove non-vnp parameters and hash fields from signature calculation
+		
 		Map<String, String> signFields = new HashMap<>();
 		for (Map.Entry<String, String> entry : fields.entrySet()) {
 			String key = entry.getKey();
@@ -113,7 +113,7 @@ public class VnpayService {
 					String encodedValue = URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString());
 					kvPairs.add(fieldName + "=" + encodedValue);
 				} catch (UnsupportedEncodingException e) {
-					// ignore
+					
 				}
 			}
 		}

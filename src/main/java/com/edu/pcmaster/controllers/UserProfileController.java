@@ -12,6 +12,10 @@ import com.edu.pcmaster.dto.auth.UserProfileResponse;
 import com.edu.pcmaster.models.User;
 import com.edu.pcmaster.repositories.UserRepository;
 import com.edu.pcmaster.services.CurrentUserService;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.http.ResponseEntity;
+import java.util.Map;
+import com.edu.pcmaster.dto.auth.ChangePasswordRequest;
 
 @RestController
 @RequestMapping("/api/profile")
@@ -19,10 +23,12 @@ public class UserProfileController {
 
 	private final CurrentUserService currentUserService;
 	private final UserRepository userRepository;
+	private final PasswordEncoder passwordEncoder;
 
-	public UserProfileController(CurrentUserService currentUserService, UserRepository userRepository) {
+	public UserProfileController(CurrentUserService currentUserService, UserRepository userRepository, PasswordEncoder passwordEncoder) {
 		this.currentUserService = currentUserService;
 		this.userRepository = userRepository;
+		this.passwordEncoder = passwordEncoder;
 	}
 
 	@GetMapping
@@ -65,5 +71,24 @@ public class UserProfileController {
 				saved.getAddress(),
 				saved.getRole().name()
 		);
+	}
+
+	@PutMapping("/password")
+	public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest request) {
+		User user = currentUserService.requireUser();
+
+		if (request.oldPassword() == null || request.oldPassword().isEmpty() ||
+			request.newPassword() == null || request.newPassword().isEmpty()) {
+			throw new BadRequestException("Mật khẩu không được để trống");
+		}
+
+		if (!passwordEncoder.matches(request.oldPassword(), user.getPasswordHash())) {
+			throw new BadRequestException("Mật khẩu cũ không chính xác");
+		}
+
+		user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
+		userRepository.save(user);
+
+		return ResponseEntity.ok(Map.of("message", "Đổi mật khẩu thành công"));
 	}
 }

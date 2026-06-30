@@ -268,7 +268,7 @@ public class ProductService {
 			}
 		}
 		
-		// Xóa các hình ảnh phụ liên quan trên Cloudinary
+		
 		if (product.getImages() != null) {
 			for (ProductImage img : product.getImages()) {
 				String imgUrl = img.getUrl();

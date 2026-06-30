@@ -30,14 +30,9 @@ public class EmbeddingIngestionService {
 
     private static final int BATCH_SIZE = 50;
 
-    /** Giá format cho dễ đọc: 12.990.000 VND */
-    private static final DecimalFormat PRICE_FORMAT = new DecimalFormat("#,###");
+        private static final DecimalFormat PRICE_FORMAT = new DecimalFormat("#,###");
 
-    /**
-     * Ánh xạ category slug → tên loại linh kiện tiếng Việt + từ đồng nghĩa.
-     * Giúp embedding model hiểu context tốt hơn khi user search bằng tiếng Việt.
-     */
-    private static final Map<String, String> CATEGORY_ALIASES = Map.ofEntries(
+        private static final Map<String, String> CATEGORY_ALIASES = Map.ofEntries(
             Map.entry("cpu", "CPU, vi xử lý, bộ xử lý, processor"),
             Map.entry("vi-xu-ly", "CPU, vi xử lý, bộ xử lý, processor"),
             Map.entry("vga", "VGA, card đồ họa, card màn hình, GPU, graphics card"),
@@ -61,12 +56,7 @@ public class EmbeddingIngestionService {
             Map.entry("monitor", "Màn hình, monitor, màn hình máy tính"),
             Map.entry("man-hinh", "Màn hình, monitor, màn hình máy tính"));
 
-    /**
-     * Các key specs quan trọng nhất cho từng loại linh kiện.
-     * Chỉ các key này được đưa vào document text (để embedding tập trung vào thông
-     * số chính).
-     */
-    private static final Map<String, List<String>> KEY_SPECS_BY_TYPE = Map.of(
+        private static final Map<String, List<String>> KEY_SPECS_BY_TYPE = Map.of(
             "CPU", List.of("cores", "threads", "base_clock", "boost_clock", "base_clock_ghz", "boost_clock_ghz",
                     "socket", "tdp", "tdp_w", "lithography", "l3_cache", "memory_support", "ram_type",
                     "p_cores", "e_cores", "generation", "series", "architecture", "integrated_gpu"),
@@ -83,10 +73,7 @@ public class EmbeddingIngestionService {
             "COOLER", List.of("cooler_type", "fan_count", "cpu_socket_support", "fan_size_mm",
                     "fan_speed_rpm", "radiator_dimensions", "has_rgb"));
 
-    /**
-     * Tên hiển thị tiếng Việt cho các spec key (dùng trong document text).
-     */
-    private static final Map<String, String> SPEC_DISPLAY_NAMES = Map.ofEntries(
+        private static final Map<String, String> SPEC_DISPLAY_NAMES = Map.ofEntries(
             Map.entry("cores", "Số nhân"),
             Map.entry("threads", "Số luồng"),
             Map.entry("base_clock", "Xung nhịp cơ bản"),
@@ -156,15 +143,15 @@ public class EmbeddingIngestionService {
         this.objectMapper = objectMapper;
     }
 
-    // ══════════════════════════════════════════════════════════
-    // PUBLIC METHODS
-    // ══════════════════════════════════════════════════════════
+    
+    
+    
 
     @org.springframework.transaction.annotation.Transactional
     public int reindexAll() {
         List<Product> allProducts = productRepository.findAll();
 
-        // 1. Batch delete existing vectors
+        
         List<String> existingDocIds = allProducts.stream()
                 .map(p -> toDocumentId(p.getId()))
                 .collect(Collectors.toList());
@@ -175,7 +162,7 @@ public class EmbeddingIngestionService {
                 try {
                     vectorStore.delete(batch);
                 } catch (Exception e) {
-                    // Fallback: delete one by one
+                    
                     for (String docId : batch) {
                         try {
                             vectorStore.delete(List.of(docId));
@@ -187,7 +174,7 @@ public class EmbeddingIngestionService {
             System.out.printf("[RAG] Deleted existing vectors for %d products.%n", existingDocIds.size());
         }
 
-        // 2. Build documents with rich text content
+        
         Map<Long, Integer> discountsMap = productService.getActiveProductDiscountsMap();
 
         List<Document> documents = allProducts.stream()
@@ -195,7 +182,7 @@ public class EmbeddingIngestionService {
                 .map(p -> buildDocument(p, discountsMap))
                 .collect(Collectors.toList());
 
-        // 3. Batch embed
+        
         if (!documents.isEmpty()) {
             for (int i = 0; i < documents.size(); i += BATCH_SIZE) {
                 List<Document> batch = documents.subList(i, Math.min(i + BATCH_SIZE, documents.size()));
@@ -248,23 +235,11 @@ public class EmbeddingIngestionService {
                 .count();
     }
 
-    // ══════════════════════════════════════════════════════════
-    // DOCUMENT BUILDING — Core optimization
-    // ══════════════════════════════════════════════════════════
+    
+    
+    
 
-    /**
-     * Xây dựng Document với nội dung text phong phú cho embedding.
-     *
-     * Tối ưu so với phiên bản cũ:
-     * 1. THÊM specs vào text (trước đây chỉ có trong metadata) → search theo thông
-     * số chính xác hơn
-     * 2. THÊM giá vào text → search "VGA tầm 10 triệu" match tốt hơn
-     * 3. THÊM category aliases tiếng Việt → "card đồ họa" tìm được VGA
-     * 4. THÊM component_type → build config biết loại linh kiện
-     * 5. STRIP HTML khỏi description → bớt nhiễu cho embedding
-     * 6. CHỈ giữ key specs quan trọng → tập trung vector vào thông số cốt lõi
-     */
-    private Document buildDocument(Product product, Map<Long, Integer> discountsMap) {
+        private Document buildDocument(Product product, Map<Long, Integer> discountsMap) {
         Category category = product.getCategory();
         Brand brand = product.getBrand();
         String catSlug = category != null && category.getSlug() != null ? category.getSlug().toLowerCase() : "";
@@ -275,7 +250,7 @@ public class EmbeddingIngestionService {
         // ── 1. Tên sản phẩm (trọng số cao nhất cho embedding)
         content.append("Tên sản phẩm: ").append(product.getName()).append("\n");
 
-        // ── 2. Loại linh kiện + từ đồng nghĩa tiếng Việt
+        
         if (category != null) {
             content.append("Loại: ").append(category.getName());
             String aliases = findCategoryAliases(catSlug);
@@ -288,12 +263,12 @@ public class EmbeddingIngestionService {
             content.append("Phân loại linh kiện: ").append(componentType).append("\n");
         }
 
-        // ── 3. Thương hiệu
+        
         if (brand != null) {
             content.append("Thương hiệu: ").append(brand.getName()).append("\n");
         }
 
-        // ── 4. Giá bán (thêm vào text để search theo giá semantic tốt hơn)
+        
         BigDecimal price = product.getPrice();
         if (price != null) {
             Integer discountPercent = discountsMap.get(product.getId());
@@ -306,11 +281,11 @@ public class EmbeddingIngestionService {
             } else {
                 content.append("Giá: ").append(formatPrice(price)).append("\n");
             }
-            // Thêm mức giá đơn giản (triệu) cho semantic search
+            
             content.append("Phân khúc giá: ").append(priceSegment(effectivePrice)).append("\n");
         }
 
-        // ── 5. Thông số kỹ thuật cốt lõi (KEY IMPROVEMENT)
+        
         if (product.getSpecsJson() != null && !product.getSpecsJson().isNull()) {
             String specsText = buildKeySpecsText(product.getSpecsJson(), componentType);
             if (!specsText.isEmpty()) {
@@ -318,7 +293,7 @@ public class EmbeddingIngestionService {
             }
         }
 
-        // ── 6. Mô tả (stripped HTML, giới hạn length)
+        
         if (product.getDescription() != null && !product.getDescription().isBlank()) {
             String cleanDesc = stripHtml(product.getDescription());
             if (!cleanDesc.isBlank()) {
@@ -328,7 +303,7 @@ public class EmbeddingIngestionService {
             }
         }
 
-        // ── Build metadata (giữ nguyên cho filtering & display)
+        
         Map<String, Object> metadata = buildMetadata(product, category, brand, discountsMap, componentType);
 
         return Document.builder()
@@ -338,23 +313,18 @@ public class EmbeddingIngestionService {
                 .build();
     }
 
-    // ══════════════════════════════════════════════════════════
-    // SPECS TEXT BUILDING
-    // ══════════════════════════════════════════════════════════
+    
+    
+    
 
-    /**
-     * Tạo text thông số kỹ thuật CHỈ chứa các key specs quan trọng.
-     * Giúp embedding tập trung vào thông số cốt lõi thay vì bị pha loãng bởi specs
-     * phụ.
-     */
-    private String buildKeySpecsText(JsonNode specsJson, String componentType) {
+        private String buildKeySpecsText(JsonNode specsJson, String componentType) {
         List<String> keySpecs = KEY_SPECS_BY_TYPE.getOrDefault(componentType, List.of());
 
         StringBuilder sb = new StringBuilder();
         Map<String, String> allSpecs = flattenSpecs(specsJson);
 
         if (!keySpecs.isEmpty()) {
-            // Component type đã biết → chỉ lấy key specs
+            
             for (String key : keySpecs) {
                 String value = allSpecs.get(key);
                 if (value != null && !value.isBlank()) {
@@ -363,7 +333,7 @@ public class EmbeddingIngestionService {
                 }
             }
         } else {
-            // Component type không rõ → lấy tất cả specs (giới hạn 15 entries)
+            
             int count = 0;
             for (Map.Entry<String, String> entry : allSpecs.entrySet()) {
                 if (count >= 15)
@@ -373,7 +343,7 @@ public class EmbeddingIngestionService {
                     continue;
                 String value = entry.getValue();
                 if (value.length() > 200)
-                    continue; // Skip quá dài
+                    continue; 
                 String displayName = SPEC_DISPLAY_NAMES.getOrDefault(key, key);
                 sb.append("  - ").append(displayName).append(": ").append(value).append("\n");
                 count++;
@@ -383,10 +353,7 @@ public class EmbeddingIngestionService {
         return sb.toString();
     }
 
-    /**
-     * Flatten JsonNode specs thành Map<key, value> đơn giản.
-     */
-    private Map<String, String> flattenSpecs(JsonNode specs) {
+        private Map<String, String> flattenSpecs(JsonNode specs) {
         Map<String, String> result = new HashMap<>();
         if (specs == null || !specs.isObject())
             return result;
@@ -407,9 +374,9 @@ public class EmbeddingIngestionService {
         return result;
     }
 
-    // ══════════════════════════════════════════════════════════
-    // METADATA BUILDING
-    // ══════════════════════════════════════════════════════════
+    
+    
+    
 
     private Map<String, Object> buildMetadata(Product product, Category category, Brand brand,
             Map<Long, Integer> discountsMap, String componentType) {
@@ -441,18 +408,15 @@ public class EmbeddingIngestionService {
         return metadata;
     }
 
-    // ══════════════════════════════════════════════════════════
-    // HELPER METHODS
-    // ══════════════════════════════════════════════════════════
+    
+    
+    
 
     private String toDocumentId(Long productId) {
         return UUID.nameUUIDFromBytes(("product-" + productId).getBytes()).toString();
     }
 
-    /**
-     * Detect component type từ specs hoặc category slug.
-     */
-    private String detectComponentType(Product product) {
+        private String detectComponentType(Product product) {
         if (product.getSpecsJson() != null && product.getSpecsJson().has("component_type")) {
             return product.getSpecsJson().get("component_type").asText("");
         }
@@ -525,11 +489,7 @@ public class EmbeddingIngestionService {
         return PRICE_FORMAT.format(price) + " VND";
     }
 
-    /**
-     * Phân khúc giá để hỗ trợ semantic search.
-     * Ví dụ: "khoảng 13 triệu" giúp match "tầm 13 triệu".
-     */
-    private String priceSegment(BigDecimal price) {
+        private String priceSegment(BigDecimal price) {
         long million = price.longValue() / 1_000_000;
         if (million < 1)
             return "dưới 1 triệu";

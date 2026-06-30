@@ -60,7 +60,7 @@ class PcmasterApplicationTests {
 			return;
 		}
 
-		// Pick the first product name for dynamic inquiry
+		
 		String targetName = products.get(0).getName();
 		String query = String.format("Mẫu %s hiện tại giá bao nhiêu, còn hàng không em?", targetName);
 		System.out.println("[TEST] Chatting with query: " + query);
