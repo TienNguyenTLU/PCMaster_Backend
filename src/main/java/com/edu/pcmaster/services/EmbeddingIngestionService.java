@@ -18,6 +18,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,9 +32,9 @@ public class EmbeddingIngestionService {
 
     private static final int BATCH_SIZE = 50;
 
-        private static final DecimalFormat PRICE_FORMAT = new DecimalFormat("#,###");
+    private static final DecimalFormat PRICE_FORMAT = new DecimalFormat("#,###");
 
-        private static final Map<String, String> CATEGORY_ALIASES = Map.ofEntries(
+    private static final Map<String, String> CATEGORY_ALIASES = Map.ofEntries(
             Map.entry("cpu", "CPU, vi xử lý, bộ xử lý, processor"),
             Map.entry("vi-xu-ly", "CPU, vi xử lý, bộ xử lý, processor"),
             Map.entry("vga", "VGA, card đồ họa, card màn hình, GPU, graphics card"),
@@ -56,7 +58,7 @@ public class EmbeddingIngestionService {
             Map.entry("monitor", "Màn hình, monitor, màn hình máy tính"),
             Map.entry("man-hinh", "Màn hình, monitor, màn hình máy tính"));
 
-        private static final Map<String, List<String>> KEY_SPECS_BY_TYPE = Map.of(
+    private static final Map<String, List<String>> KEY_SPECS_BY_TYPE = Map.of(
             "CPU", List.of("cores", "threads", "base_clock", "boost_clock", "base_clock_ghz", "boost_clock_ghz",
                     "socket", "tdp", "tdp_w", "lithography", "l3_cache", "memory_support", "ram_type",
                     "p_cores", "e_cores", "generation", "series", "architecture", "integrated_gpu"),
@@ -73,7 +75,7 @@ public class EmbeddingIngestionService {
             "COOLER", List.of("cooler_type", "fan_count", "cpu_socket_support", "fan_size_mm",
                     "fan_speed_rpm", "radiator_dimensions", "has_rgb"));
 
-        private static final Map<String, String> SPEC_DISPLAY_NAMES = Map.ofEntries(
+    private static final Map<String, String> SPEC_DISPLAY_NAMES = Map.ofEntries(
             Map.entry("cores", "Số nhân"),
             Map.entry("threads", "Số luồng"),
             Map.entry("base_clock", "Xung nhịp cơ bản"),
@@ -143,15 +145,10 @@ public class EmbeddingIngestionService {
         this.objectMapper = objectMapper;
     }
 
-    
-    
-    
-
     @org.springframework.transaction.annotation.Transactional
     public int reindexAll() {
         List<Product> allProducts = productRepository.findAll();
 
-        
         List<String> existingDocIds = allProducts.stream()
                 .map(p -> toDocumentId(p.getId()))
                 .collect(Collectors.toList());
@@ -162,7 +159,7 @@ public class EmbeddingIngestionService {
                 try {
                     vectorStore.delete(batch);
                 } catch (Exception e) {
-                    
+
                     for (String docId : batch) {
                         try {
                             vectorStore.delete(List.of(docId));
@@ -174,7 +171,6 @@ public class EmbeddingIngestionService {
             System.out.printf("[RAG] Deleted existing vectors for %d products.%n", existingDocIds.size());
         }
 
-        
         Map<Long, Integer> discountsMap = productService.getActiveProductDiscountsMap();
 
         List<Document> documents = allProducts.stream()
@@ -182,7 +178,6 @@ public class EmbeddingIngestionService {
                 .map(p -> buildDocument(p, discountsMap))
                 .collect(Collectors.toList());
 
-        
         if (!documents.isEmpty()) {
             for (int i = 0; i < documents.size(); i += BATCH_SIZE) {
                 List<Document> batch = documents.subList(i, Math.min(i + BATCH_SIZE, documents.size()));
@@ -235,11 +230,7 @@ public class EmbeddingIngestionService {
                 .count();
     }
 
-    
-    
-    
-
-        private Document buildDocument(Product product, Map<Long, Integer> discountsMap) {
+    private Document buildDocument(Product product, Map<Long, Integer> discountsMap) {
         Category category = product.getCategory();
         Brand brand = product.getBrand();
         String catSlug = category != null && category.getSlug() != null ? category.getSlug().toLowerCase() : "";
@@ -247,10 +238,18 @@ public class EmbeddingIngestionService {
 
         StringBuilder content = new StringBuilder();
 
-        // ── 1. Tên sản phẩm (trọng số cao nhất cho embedding)
-        content.append("Tên sản phẩm: ").append(product.getName()).append("\n");
+        // ── 1. Tên sản phẩm chuẩn hóa (trọng số cao nhất cho embedding)
+        if (!componentType.isEmpty()) {
+            content.append("[").append(componentType.toUpperCase()).append("] ");
+        }
+        content.append(product.getName().toUpperCase()).append("\n");
 
-        
+        // Trích xuất mã sản phẩm biến thể để embedding model capture tốt hơn
+        String variants = extractModelVariants(product.getName());
+        if (!variants.isEmpty()) {
+            content.append("Mã sản phẩm: ").append(variants).append("\n");
+        }
+
         if (category != null) {
             content.append("Loại: ").append(category.getName());
             String aliases = findCategoryAliases(catSlug);
@@ -263,12 +262,10 @@ public class EmbeddingIngestionService {
             content.append("Phân loại linh kiện: ").append(componentType).append("\n");
         }
 
-        
         if (brand != null) {
             content.append("Thương hiệu: ").append(brand.getName()).append("\n");
         }
 
-        
         BigDecimal price = product.getPrice();
         if (price != null) {
             Integer discountPercent = discountsMap.get(product.getId());
@@ -281,11 +278,10 @@ public class EmbeddingIngestionService {
             } else {
                 content.append("Giá: ").append(formatPrice(price)).append("\n");
             }
-            
+
             content.append("Phân khúc giá: ").append(priceSegment(effectivePrice)).append("\n");
         }
 
-        
         if (product.getSpecsJson() != null && !product.getSpecsJson().isNull()) {
             String specsText = buildKeySpecsText(product.getSpecsJson(), componentType);
             if (!specsText.isEmpty()) {
@@ -293,7 +289,6 @@ public class EmbeddingIngestionService {
             }
         }
 
-        
         if (product.getDescription() != null && !product.getDescription().isBlank()) {
             String cleanDesc = stripHtml(product.getDescription());
             if (!cleanDesc.isBlank()) {
@@ -303,7 +298,6 @@ public class EmbeddingIngestionService {
             }
         }
 
-        
         Map<String, Object> metadata = buildMetadata(product, category, brand, discountsMap, componentType);
 
         return Document.builder()
@@ -313,18 +307,14 @@ public class EmbeddingIngestionService {
                 .build();
     }
 
-    
-    
-    
-
-        private String buildKeySpecsText(JsonNode specsJson, String componentType) {
+    private String buildKeySpecsText(JsonNode specsJson, String componentType) {
         List<String> keySpecs = KEY_SPECS_BY_TYPE.getOrDefault(componentType, List.of());
 
         StringBuilder sb = new StringBuilder();
         Map<String, String> allSpecs = flattenSpecs(specsJson);
 
         if (!keySpecs.isEmpty()) {
-            
+
             for (String key : keySpecs) {
                 String value = allSpecs.get(key);
                 if (value != null && !value.isBlank()) {
@@ -333,7 +323,7 @@ public class EmbeddingIngestionService {
                 }
             }
         } else {
-            
+
             int count = 0;
             for (Map.Entry<String, String> entry : allSpecs.entrySet()) {
                 if (count >= 15)
@@ -343,7 +333,7 @@ public class EmbeddingIngestionService {
                     continue;
                 String value = entry.getValue();
                 if (value.length() > 200)
-                    continue; 
+                    continue;
                 String displayName = SPEC_DISPLAY_NAMES.getOrDefault(key, key);
                 sb.append("  - ").append(displayName).append(": ").append(value).append("\n");
                 count++;
@@ -353,7 +343,7 @@ public class EmbeddingIngestionService {
         return sb.toString();
     }
 
-        private Map<String, String> flattenSpecs(JsonNode specs) {
+    private Map<String, String> flattenSpecs(JsonNode specs) {
         Map<String, String> result = new HashMap<>();
         if (specs == null || !specs.isObject())
             return result;
@@ -373,10 +363,6 @@ public class EmbeddingIngestionService {
         }
         return result;
     }
-
-    
-    
-    
 
     private Map<String, Object> buildMetadata(Product product, Category category, Brand brand,
             Map<Long, Integer> discountsMap, String componentType) {
@@ -405,18 +391,46 @@ public class EmbeddingIngestionService {
         metadata.put("componentType", componentType);
         metadata.put("source", "product");
 
+        // ── Ánh xạ Specs JSONB sang Vector Metadata động (Không đổi SQL schema) ──
+        JsonNode specs = product.getSpecsJson();
+        if (specs != null && specs.isObject()) {
+            putSpecIfPresent(metadata, specs, "socket");
+            putSpecIfPresent(metadata, specs, "ram_type");
+            putSpecIntIfPresent(metadata, specs, "tdp");
+            putSpecIfPresent(metadata, specs, "form_factor");
+            putSpecIfPresent(metadata, specs, "chipset");
+            putSpecIntIfPresent(metadata, specs, "wattage");
+            putSpecIntIfPresent(metadata, specs, "gpu_length_mm");
+            putSpecIntIfPresent(metadata, specs, "max_gpu_length_mm");
+            putSpecIntIfPresent(metadata, specs, "max_cpu_cooler_height_mm");
+            putSpecIfPresent(metadata, specs, "cpu_socket_support");
+            putSpecIntIfPresent(metadata, specs, "recommended_psu");
+            putSpecIntIfPresent(metadata, specs, "cooler_height_mm");
+        }
+
         return metadata;
     }
 
-    
-    
-    
+    private void putSpecIfPresent(Map<String, Object> metadata, JsonNode specs, String key) {
+        if (specs.has(key) && !specs.get(key).isNull()) {
+            String val = specs.get(key).asText("").trim();
+            if (!val.isEmpty()) {
+                metadata.put(key, val);
+            }
+        }
+    }
+
+    private void putSpecIntIfPresent(Map<String, Object> metadata, JsonNode specs, String key) {
+        if (specs.has(key) && specs.get(key).isNumber()) {
+            metadata.put(key, specs.get(key).asInt());
+        }
+    }
 
     private String toDocumentId(Long productId) {
         return UUID.nameUUIDFromBytes(("product-" + productId).getBytes()).toString();
     }
 
-        private String detectComponentType(Product product) {
+    private String detectComponentType(Product product) {
         if (product.getSpecsJson() != null && product.getSpecsJson().has("component_type")) {
             return product.getSpecsJson().get("component_type").asText("");
         }
@@ -489,7 +503,7 @@ public class EmbeddingIngestionService {
         return PRICE_FORMAT.format(price) + " VND";
     }
 
-        private String priceSegment(BigDecimal price) {
+    private String priceSegment(BigDecimal price) {
         long million = price.longValue() / 1_000_000;
         if (million < 1)
             return "dưới 1 triệu";
@@ -504,5 +518,28 @@ public class EmbeddingIngestionService {
         if (million < 35)
             return "khoảng " + million + " triệu, phân khúc cao cấp";
         return "khoảng " + million + " triệu, phân khúc siêu cao cấp";
+    }
+
+    private String extractModelVariants(String productName) {
+        List<String> variants = new ArrayList<>();
+        // GPU
+        Matcher gpuMatcher = Pattern.compile("(?i)((?:RTX|GTX|RX|ARC)\\s*\\d{3,4}(?:\\s*(?:TI|XT|XTX|SUPER))*)")
+                .matcher(productName);
+        while (gpuMatcher.find()) {
+            variants.add(gpuMatcher.group(1).toUpperCase().trim());
+        }
+        // CPU
+        Matcher cpuMatcher = Pattern.compile("(?i)((?:RYZEN\\s*[3579]\\s*\\d{4}\\w*)|(?:CORE\\s*I[3579][-\\s]*\\d{4,5}\\w*))")
+                .matcher(productName);
+        while (cpuMatcher.find()) {
+            variants.add(cpuMatcher.group(1).toUpperCase().trim());
+        }
+        // Chipset
+        Matcher chipMatcher = Pattern.compile("(?i)\\b([BXZHAW]\\d{3}[MESP]*)\\b")
+                .matcher(productName);
+        while (chipMatcher.find()) {
+            variants.add(chipMatcher.group(1).toUpperCase().trim());
+        }
+        return String.join(", ", variants);
     }
 }

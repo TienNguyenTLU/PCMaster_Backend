@@ -117,9 +117,7 @@ public class AuthService {
 				System.err.println("Google API error: Status " + response.statusCode() + " - Body: " + response.body());
 				throw new BadRequestException("Invalid Google token response from Google APIs: " + response.body());
 			}
-
 			GoogleTokenInfo tokenInfo = objectMapper.readValue(response.body(), GoogleTokenInfo.class);
-
 			if (tokenInfo == null || tokenInfo.email == null) {
 				throw new BadRequestException("Invalid Google token payload (email is null)");
 			}
@@ -156,5 +154,3 @@ public class AuthService {
 		public String picture;
 	}
 }
-
-

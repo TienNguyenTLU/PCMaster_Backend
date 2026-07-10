@@ -26,6 +26,9 @@ class PcmasterApplicationTests {
 	@Autowired
 	private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
 
+	@Autowired
+	private org.springframework.ai.vectorstore.VectorStore vectorStore;
+
 	@Test
 	@org.springframework.test.annotation.Commit
 	void updateStockTo40() {
@@ -43,6 +46,31 @@ class PcmasterApplicationTests {
 		int count = embeddingIngestionService.reindexAll();
 		System.out.println("[TEST] Reindexed products count: " + count);
 	}
+
+	@Test
+	void testCategorySearch() {
+		String[] types = {"CPU", "MAINBOARD", "RAM", "GPU", "STORAGE", "PSU", "CASE", "COOLER"};
+		for (String type : types) {
+			String filterExpr = String.format("componentType == '%s'", type);
+			org.springframework.ai.vectorstore.SearchRequest searchRequest = 
+				org.springframework.ai.vectorstore.SearchRequest.builder()
+					.query(type + " Build PC gaming")
+					.topK(5)
+					.filterExpression(filterExpr)
+					.build();
+			try {
+				var docs = vectorStore.similaritySearch(searchRequest);
+				System.out.println("[TEST_SEARCH] Category " + type + " returned: " + docs.size() + " documents.");
+				for (var doc : docs) {
+					System.out.println("  - " + doc.getMetadata().get("name") + " | componentType=" + doc.getMetadata().get("componentType") + " | productId=" + doc.getMetadata().get("productId"));
+				}
+			} catch (Exception e) {
+				System.err.println("[TEST_SEARCH] Search failed for " + type + ": " + e.getMessage());
+			}
+		}
+	}
+
+
 
 	@Test
 	void testChatFlow() {
@@ -75,4 +103,5 @@ class PcmasterApplicationTests {
 
 
 }
+
 
